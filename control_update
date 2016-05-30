@@ -8,7 +8,7 @@ function build() {
         #-c: Vain kompilaatio
         g++ -c src/main.cpp -Ipoco-1.7.3/Foundation/include -Ipoco-1.7.3/Util/include -Ipoco-1.7.3/Net/include -pthread
         # Linkkaaminen:
-        g++ *.o -Llib -lPocoNet -lPocoUtil -lPocoFoundation -pthread -o ml_exec
+        g++ *.o -L../data/lib -lPocoNet -lPocoUtil -lPocoFoundation -pthread -o ml_exec
         # Osoitteesta
         #http://stackoverflow.com/questions/15701796/poco-c-static-linking-problems-with-undefined-references-to-symbols
         # -pthread korjasi jonkin virheen
