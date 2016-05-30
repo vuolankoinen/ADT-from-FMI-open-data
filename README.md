@@ -1,3 +1,5 @@
 # ml_cpp
 
-Trying out web hosting with C++.
+Trying out machine learning algorithms and web hosting with C++.
+This project is hosted on OpenShift at 
+ml-vuolankoinen.rhcloud.com
