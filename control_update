@@ -1,0 +1,16 @@
+# Changes to OpenShift C++ -cartridge to be able to use uploaded library.
+
+function build() {
+        echo "Building $cartride_type cart"
+        cd ${OPENSHIFT_REPO_DIR}
+#       cmake . 2>&1 >> ${OPENSHIFT_LOG_DIR}${OPENSHIFT_APP_NAME}-compile.log
+#       make 2>&1 >> ${OPENSHIFT_LOG_DIR}${OPENSHIFT_APP_NAME}-compile.log
+        #-c: Vain kompilaatio
+        g++ -c src/main.cpp -Ipoco-1.7.3/Foundation/include -Ipoco-1.7.3/Util/include -Ipoco-1.7.3/Net/include -pthread
+        # Linkkaaminen:
+        g++ *.o -Llib -lPocoNet -lPocoUtil -lPocoFoundation -pthread -o ml_exec
+        # Osoitteesta
+        #http://stackoverflow.com/questions/15701796/poco-c-static-linking-problems-with-undefined-references-to-symbols
+        # -pthread korjasi jonkin virheen
+
+}
