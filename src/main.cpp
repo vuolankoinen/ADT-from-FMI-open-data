@@ -8,12 +8,18 @@
 #include <Poco/Net/SocketAddress.h>
 #include <Poco/Util/ServerApplication.h>
 #include <iostream>
+#include <fstream>
+#include <Poco/Net/HTTPClientSession.h>
+#include <Poco/StreamCopier.h>
 #include <string>
-#include <vector>
+#include <vector> 
+#include <ctime>
 
 using namespace Poco::Net;
 using namespace Poco::Util;
 using namespace std;
+
+
 
 class MyRequestHandler : public HTTPRequestHandler
 {
@@ -21,15 +27,35 @@ public:
   virtual void handleRequest(HTTPServerRequest &req, HTTPServerResponse &resp)
   {
     resp.setStatus(HTTPResponse::HTTP_OK);
+
+
+    if (req.getURI() == "/lataa/") {
+    resp.setContentType("text/xml");
+    ostream& ulos = resp.send();
+
+      string salausavain;
+      ifstream tiedosto;
+      tiedosto.open("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/fmi_avain");
+      getline(tiedosto, salausavain);
+      tiedosto.close();
+
+      string kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::timevaluepair&parameters=windspeedms,temperature&fmisid=101003&starttime=2010-04-12T03:59:59Z&endtime=2010-04-14T05:59:59Z";
+      HTTPClientSession s("data.fmi.fi");
+      HTTPRequest request(HTTPRequest::HTTP_GET, kutsu);
+      s.sendRequest(request);
+      HTTPResponse response;
+      std::istream& rs = s.receiveResponse(response);
+      Poco::StreamCopier::copyStream(rs, ulos);
+
+      return;
+    }
+
     resp.setContentType("text/html");
-
-    ostream& out = resp.send();
-    out << "<h1>Heips!</h1>"
-        << "<p>Aplikaatio sai juuri pyynnon, muotoa " << req.getMethod() << ",</p>"
-        << "<p>osoitteeseen "  << req.getHost() << req.getURI() << ".</p>"
-        << "<p>Hienoa!</p>";
-    out.flush();
-
+    ostream& ulos = resp.send();
+    ulos << "<h1>Heips!</h1>"
+	 << "<p>Aplikaatio sai juuri pyynnon, muotoa " << req.getMethod() << ",</p>"
+	 << "<p>Hienoa!</p>";
+    
   }
 
 private:
@@ -66,6 +92,7 @@ protected:
 
 int main(int argc, char** argv)
 {
+
   MyMLApp app;
   return app.run(argc, argv);
 }
