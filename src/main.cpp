@@ -14,12 +14,47 @@
 #include <string>
 #include <vector> 
 #include <ctime>
+#include <Poco/SAX/ContentHandler.h> //xml 
+
+// Paree ottaa XML pois ja kokeilla ihan vaan Utilsilla, kts. 
+// http://pocoproject.org/docs/Poco.Util.XMLConfiguration.html
 
 using namespace Poco::Net;
 using namespace Poco::Util;
+using namespace Poco::XML;
 using namespace std;
 
 
+
+ class MyHandler: public ContentHandler//xml 
+ {//xml 
+ public://xml 
+   MyHandler();//xml 
+   void setDocumentLocator(const Locator* loc);//xml 
+   void startDocument();//xml 
+   void endDocument();//xml 
+   void startElement(//xml 
+ 		    const XMLString& namespaceURI,//xml 
+ 		    const XMLString& localName,//xml 
+ 		    const XMLString& qname,//xml 
+ 		    const Attributes& attributes);//xml 
+   void endElement(//xml 
+ 		  const XMLString& uri,//xml 
+ 		  const XMLString& localName,//xml 
+ 		  const XMLString& qname);//xml 
+   void characters(const XMLChar ch[], int start, int length);//xml 
+   void ignorableWhitespace(const XMLChar ch[], int start, int len);//xml 
+   void processingInstruction(//xml 
+ 			     const XMLString& target,//xml 
+ 			     const XMLString& data);//xml 
+   void startPrefixMapping(//xml 
+ 			  const XMLString& prefix,//xml 
+ 			  const XMLString& uri);//xml 
+   void endPrefixMapping(const XMLString& prefix);//xml 
+   void skippedEntity(const XMLString& name);//xml 
+ };//xml 
+	
+	
 
 class MyRequestHandler : public HTTPRequestHandler
 {
@@ -27,25 +62,30 @@ public:
   virtual void handleRequest(HTTPServerRequest &req, HTTPServerResponse &resp)
   {
     resp.setStatus(HTTPResponse::HTTP_OK);
-
-
+    
+    
     if (req.getURI() == "/lataa/") {
-    resp.setContentType("text/xml");
-    ostream& ulos = resp.send();
-
+      resp.setContentType("text/html");
+      ostream& ulos = resp.send();
+      
       string salausavain;
       ifstream tiedosto;
       tiedosto.open("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/fmi_avain");
       getline(tiedosto, salausavain);
       tiedosto.close();
-
+      
       string kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::timevaluepair&parameters=windspeedms,temperature&fmisid=101003&starttime=2010-04-12T03:59:59Z&endtime=2010-04-14T05:59:59Z";
-      HTTPClientSession s("data.fmi.fi");
+      HTTPClientSession sessio("data.fmi.fi");
       HTTPRequest request(HTTPRequest::HTTP_GET, kutsu);
-      s.sendRequest(request);
-      HTTPResponse response;
-      std::istream& rs = s.receiveResponse(response);
-      Poco::StreamCopier::copyStream(rs, ulos);
+      sessio.sendRequest(request);
+      HTTPResponse vastaus;
+      std::istream& rs = sessio.receiveResponse(vastaus);
+      ofstream datatiedosto;
+      datatiedosto.open("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/datat.xml");
+      Poco::StreamCopier::copyStream(rs, datatiedosto);
+      datatiedosto.close();
+
+      ulos << "<p>Datat ladattu ja tallennettu.</p>";
 
       return;
     }
@@ -61,8 +101,6 @@ public:
 private:
   static int count;
 };
-
-int MyRequestHandler::count = 0;
 
 class MyRequestHandlerFactory : public HTTPRequestHandlerFactory
 {

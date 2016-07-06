@@ -57,7 +57,7 @@ endif()
 include(PocoMacros)
 
 # Allow enabling and disabling components
-option(ENABLE_XML "Enable the XML" OFF)
+option(ENABLE_XML "Enable the XML" ON)
 option(ENABLE_JSON "Enable the JSON" OFF)
 option(ENABLE_MONGODB "Enable MongoDB" OFF)
 option(ENABLE_PDF "Enable PDF" OFF)
