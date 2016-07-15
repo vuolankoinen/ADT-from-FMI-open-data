@@ -1,3 +1,4 @@
+#include "XmlLukija.h"
 #include <Poco/SAX/ContentHandler.h>
 #include <Poco/SAX/SAXParser.h>
 #include <Poco/SAX/InputSource.h>
@@ -5,7 +6,6 @@
 #include <Poco/SAX/Attributes.h>
 #include <Poco/SAX/Locator.h>
 
-#include "XmlLukija.h"
 
 XmlLukija::XmlLukija(std::string nimi ) : tiedosto(nimi.c_str()) { } //ofstreamin alustaminen std::stringillä tulee vasta C++11:ssa
   

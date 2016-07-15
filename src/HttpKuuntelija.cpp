@@ -29,17 +29,26 @@
 void HttpKuuntelija::handleRequest(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &resp)
   {
     resp.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
+
+    if (req.getURI() == "/lataa/") {lataa(resp); return;}
+    if (req.getURI() == "/opeta-algoritmi/") {opeta(resp); return;}
+    if (req.getURI() == "/ennuste/") {ennuste(resp); return;}
+
+    valikko(resp);  //Muihin osoitteisiin tulevat kutsut.
     
-    if (req.getURI() == "/lataa/") {
+  }
+
+void HttpKuuntelija::lataa(Poco::Net::HTTPServerResponse &resp)
+{
       resp.setContentType("text/html");
       std::ostream& ulos = resp.send();
       std::string salausavain;
-      std::ifstream tiedosto;
-      tiedosto.open("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/fmi_avain");
-      getline(tiedosto, salausavain);
-      tiedosto.close();
+      std::ifstream salasanatiedosto;
+      salasanatiedosto.open("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/fmi_avain");
+      getline(salasanatiedosto, salausavain);
+      salasanatiedosto.close();
       
-      std::string kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::timevaluepair&parameters=windspeedms,temperature&fmisid=101003&starttime=2010-04-12T03:59:59Z&endtime=2010-04-14T05:59:59Z";
+      std::string kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::simple&parameters=temperature&fmisid=101003&starttime=2010-04-12T03:59:59Z&endtime=2010-04-14T05:59:59Z";
       /*
 Muita käypiä kyselyitä on.
 weather voidaan korvata:
@@ -60,41 +69,84 @@ parameters:
    WindUMS
    WindVMS
    MaximumWind
-
+Temperature, Pressure, Humidity, DewPoint, WindUMS, WindVMS and Precipitation1h
    Käyttistä lienee myös vuorokauden- ja vuodenaika.
 */
+
       Poco::Net::HTTPClientSession sessio("data.fmi.fi");
       Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_GET, kutsu);
       sessio.sendRequest(request);
-      Poco::Net::HTTPResponse vastaus;
-      std::istream& rs = sessio.receiveResponse(vastaus);
-      std::ofstream datatiedosto("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/datat.xml");
-      Poco::StreamCopier::copyStream(rs, datatiedosto);
-      datatiedosto.close();
+      {Poco::Net::HTTPResponse vastaus;
+	std::istream& ladatut = sessio.receiveResponse(vastaus);
+	std::ofstream datatiedosto("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/T.xml");
+	Poco::StreamCopier::copyStream(ladatut, datatiedosto);}
       
-      std::ifstream datat("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/datat.xml");
+      kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&parameters=pressure&fmisid=101003&timestep=120&starttime=2010-04-12T03:59:59Z&endtime=2010-04-17T05:59:59Z";
+      request.setURI(kutsu);
+      sessio.sendRequest(request);
+      {Poco::Net::HTTPResponse vastaus;
+	std::istream& ladatut = sessio.receiveResponse(vastaus);
+	std::ofstream datatiedosto("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/P.xml");
+	Poco::StreamCopier::copyStream(ladatut, datatiedosto);}
       
-      XmlLukija handlari("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/puretut_datat.xml");
-      Poco::XML::SAXParser parseri;
-      parseri.setFeature(Poco::XML::XMLReader::FEATURE_NAMESPACES, true);
-      parseri.setFeature(Poco::XML::XMLReader::FEATURE_NAMESPACE_PREFIXES, true);
-      parseri.setContentHandler(&handlari);
-      parseri.setProperty(Poco::XML::XMLReader::PROPERTY_LEXICAL_HANDLER, static_cast<Poco::XML::LexicalHandler*>(&handlari));
 
-      Poco::XML::InputSource luettava(datat);
-      parseri.parse(& luettava);
+      {std::ifstream datat("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/T.xml");      
+	XmlLukija handlari("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/T.data");
+	Poco::XML::SAXParser parseri;
+	parseri.setFeature(Poco::XML::XMLReader::FEATURE_NAMESPACES, true);
+	parseri.setFeature(Poco::XML::XMLReader::FEATURE_NAMESPACE_PREFIXES, true);
+	parseri.setContentHandler(&handlari);
+	parseri.setProperty(Poco::XML::XMLReader::PROPERTY_LEXICAL_HANDLER, static_cast<Poco::XML::LexicalHandler*>(&handlari));
 
-      datat.close();
+	Poco::XML::InputSource luettava(datat);
+	parseri.parse(& luettava);
 
-      ulos << "<p>Datat ladattu ja tallennettu.</p>";
-      return;
+      datat.close();}
+
+      {std::ifstream datat("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/P.xml");      
+	XmlLukija handlari("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/P.data");
+	Poco::XML::SAXParser parseri;
+	parseri.setFeature(Poco::XML::XMLReader::FEATURE_NAMESPACES, true);
+	parseri.setFeature(Poco::XML::XMLReader::FEATURE_NAMESPACE_PREFIXES, true);
+	parseri.setContentHandler(&handlari);
+	parseri.setProperty(Poco::XML::XMLReader::PROPERTY_LEXICAL_HANDLER, static_cast<Poco::XML::LexicalHandler*>(&handlari));
+	
+	Poco::XML::InputSource luettava(datat);
+	parseri.parse(& luettava);
+	
+	datat.close();}
+      
+      ulos << "<p>Datat ladattu ja tallennettu.</p>"
+       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/\">Takaisin.</a></p>";
     }
 
-    resp.setContentType("text/html");
-    std::ostream& ulos = resp.send();
-    ulos << "<h1>Heips!</h1>"
-         << "<p>Applikaation käyttöön on seuraavat vaihtoehdot:.</p>"
-         << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/lataa/\">Lataa säätiedot Ilmatieteenlaitoksen sivulta palvelimelle.</a></p>";
-    
-  }
+void HttpKuuntelija::opeta(Poco::Net::HTTPServerResponse &resp)
+{
+  resp.setContentType("text/html");
+  std::ostream& ulos = resp.send(); // ostreamit voisi tulla parametreina
+  ulos << "<h1>Toiminnallisuus on vasta toteutettavana...</h1>"
+       << "<p>...</p>"
+       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/\">Takaisin.</a></p>";
+}
 
+void HttpKuuntelija::ennuste(Poco::Net::HTTPServerResponse &resp)
+{
+  resp.setContentType("text/html");
+  std::ostream& ulos = resp.send();
+  ulos << "<h1>Toiminnallisuus on vasta toteutettavana...</h1>"
+       << "<p>...</p>"
+       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/\">Takaisin.</a></p>";
+}
+
+
+void HttpKuuntelija::valikko(Poco::Net::HTTPServerResponse &resp)
+{
+  resp.setContentType("text/html");
+  std::ostream& ulos = resp.send();
+  ulos << "<h1>Heips!</h1>"
+       << "<p>Valitse vaihtoehdoista:</p>"
+       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/lataa/\"><b>Lataa meteorologiset tiedot</b> Ilmatieteenlaitoksen sivulta sovellukselle.</a></p>"
+       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/opeta-algoritmi/\"><b>Opeta algoritmi</b> ladattujen tietojen perusteella.</a></p>"
+       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/ennuste/\"><b>Ennusta huomisen sadetilanne</b> Ilmatieteenlaitoksen tietojen perusteella.</a></p>";
+  ulos.flush();
+}
