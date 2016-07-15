@@ -9,7 +9,7 @@
 #include <string>
 #include <vector> 
 
-#include "rajapinnat.h"  //MyRequestHandler, MyRequestHandlerFactory 
+#include "rajapinnat.h"  //MyRequestHandlerFactory 
 
 
 class Palvelinsovellus : public Poco::Util::ServerApplication
