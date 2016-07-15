@@ -4,4 +4,4 @@
 * ~~SAXparserin luominen~~  
 * luokka oppimista varten  
 * luokka ennustuksia varten  
-* loogisten kokonaisuuksien jakaminen tarkoituksenmukaisiin tiedostoihin
+* ~~loogisten kokonaisuuksien jakaminen tarkoituksenmukaisiin tiedostoihin~~
