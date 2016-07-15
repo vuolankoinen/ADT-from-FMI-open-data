@@ -1,0 +1,103 @@
+MyHandler::MyHandler(std::string nimi ) : tiedosto(nimi.c_str()) { } //ofstreamin alustaminen std::stringillä tulee vasta C++11:ssa
+  
+  // ContentHandler
+  void MyHandler::setDocumentLocator(const Poco::XML::Locator* loc)
+  {
+    
+  }
+  
+  void MyHandler::startDocument()
+  {
+    
+  }
+  
+  void MyHandler::endDocument()
+  {
+    
+  }
+  
+  void MyHandler::startElement(const Poco::XML::XMLString& uri, const Poco::XML::XMLString& localName, const Poco::XML::XMLString& qname, const Poco::XML::Attributes& attributes)
+  {
+
+  }
+  
+  void MyHandler::endElement(const Poco::XML::XMLString& uri, const Poco::XML::XMLString& localName, const Poco::XML::XMLString& qname)
+  {
+    
+  }
+  
+  void MyHandler::characters(const Poco::XML::XMLChar ch[], int start, int length)
+  {
+    int myStart = start;
+    int myLength = length;
+    while((0 != myLength) && (('\n' == ch[myStart]) || ('\t' == ch[myStart]) || (' ' == ch[myStart]))) // JÃ¤tetÃ¤Ã¤n tyhjÃ¤t alut huomiotta.
+      {
+	++myStart;
+	--myLength;
+      }
+    if(0 != myLength)
+      {
+	tiedosto << std::string(ch + myStart, myLength) << std::endl;
+      }
+  }
+  
+  void MyHandler::ignorableWhitespace(const Poco::XML::XMLChar ch[], int start, int length)
+  {
+    
+  }
+  
+  void MyHandler::processingInstruction(const Poco::XML::XMLString& target, const Poco::XML::XMLString& data)
+  {
+
+  }
+ 
+  void MyHandler::startPrefixMapping(const Poco::XML::XMLString& prefix, const Poco::XML::XMLString& uri)
+  {
+
+  }
+ 
+  void MyHandler::endPrefixMapping(const Poco::XML::XMLString& prefix)
+  {
+
+  }
+ 
+  void MyHandler::skippedEntity(const Poco::XML::XMLString& name)
+  {
+
+  }
+ 
+  // LexicalHandler
+  void MyHandler::startDTD(const Poco::XML::XMLString& name, const Poco::XML::XMLString& publicId, const Poco::XML::XMLString& systemId)
+  {
+
+  }
+ 
+  void MyHandler::endDTD()
+  {
+
+  }
+ 
+  void MyHandler::startEntity(const Poco::XML::XMLString& name)
+  {
+
+  }
+ 
+  void MyHandler::endEntity(const Poco::XML::XMLString& name)
+  {
+
+  }
+ 
+  void MyHandler::startCDATA()
+  {
+
+  }
+ 
+  void MyHandler::endCDATA()
+  {
+
+  }
+ 
+  void MyHandler::comment(const Poco::XML::XMLChar ch[], int start, int length)
+  {
+
+  }
