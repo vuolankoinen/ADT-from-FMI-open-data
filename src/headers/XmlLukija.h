@@ -13,8 +13,13 @@
 class XmlLukija : public Poco::XML::ContentHandler, public Poco::XML::LexicalHandler
 {
   std::ofstream tiedosto;
+  int kirjoitetaan;
+  std::string avain;
  public:
-  XmlLukija(std::string nimi );
+  XmlLukija(std::string nimi);
+  XmlLukija(std::string nimi, std::string avainsana );
+  //omat
+  void asetaAvainsana(std::string avainsana);
   // ContentHandler
   void setDocumentLocator(const Poco::XML::Locator* loc);
   

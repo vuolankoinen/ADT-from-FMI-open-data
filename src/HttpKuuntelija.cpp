@@ -48,7 +48,7 @@ void HttpKuuntelija::lataa(Poco::Net::HTTPServerResponse &resp)
       getline(salasanatiedosto, salausavain);
       salasanatiedosto.close();
       
-      std::string kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::simple&parameters=temperature&fmisid=101003&starttime=2010-04-12T03:59:59Z&endtime=2010-04-14T05:59:59Z";
+      std::string kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Kaskinen&timestep=120";
       /*
 Muita käypiä kyselyitä on.
 weather voidaan korvata:
@@ -78,20 +78,20 @@ Temperature, Pressure, Humidity, DewPoint, WindUMS, WindVMS and Precipitation1h
       sessio.sendRequest(request);
       {Poco::Net::HTTPResponse vastaus;
 	std::istream& ladatut = sessio.receiveResponse(vastaus);
-	std::ofstream datatiedosto("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/T.xml");
+	std::ofstream datatiedosto("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Kaskinen.xml");
 	Poco::StreamCopier::copyStream(ladatut, datatiedosto);}
       
-      kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&parameters=pressure&fmisid=101003&timestep=120&starttime=2010-04-12T03:59:59Z&endtime=2010-04-17T05:59:59Z";
+      kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Helsinki&timestep=120";
       request.setURI(kutsu);
       sessio.sendRequest(request);
       {Poco::Net::HTTPResponse vastaus;
 	std::istream& ladatut = sessio.receiveResponse(vastaus);
-	std::ofstream datatiedosto("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/P.xml");
+	std::ofstream datatiedosto("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki.xml");
 	Poco::StreamCopier::copyStream(ladatut, datatiedosto);}
       
 
-      {std::ifstream datat("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/T.xml");      
-	XmlLukija handlari("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/T.data");
+      {std::ifstream datat("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Kaskinen.xml");      
+	XmlLukija handlari("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Kaskinen.data", "DataBlock");
 	Poco::XML::SAXParser parseri;
 	parseri.setFeature(Poco::XML::XMLReader::FEATURE_NAMESPACES, true);
 	parseri.setFeature(Poco::XML::XMLReader::FEATURE_NAMESPACE_PREFIXES, true);
@@ -103,8 +103,9 @@ Temperature, Pressure, Humidity, DewPoint, WindUMS, WindVMS and Precipitation1h
 
       datat.close();}
 
-      {std::ifstream datat("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/P.xml");      
-	XmlLukija handlari("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/P.data");
+      {std::ifstream datat("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki.xml");
+	XmlLukija handlari("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki.data");
+	handlari.asetaAvainsana("DataBlock");
 	Poco::XML::SAXParser parseri;
 	parseri.setFeature(Poco::XML::XMLReader::FEATURE_NAMESPACES, true);
 	parseri.setFeature(Poco::XML::XMLReader::FEATURE_NAMESPACE_PREFIXES, true);
