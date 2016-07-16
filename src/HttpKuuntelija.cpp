@@ -1,5 +1,6 @@
 /* Hoitaa palvelimen saamat HTTP-kutsut.*/
 
+#include "HttpKuuntelija.h"
 #include <Poco/Net/ServerSocket.h>
 #include <Poco/Net/HTTPServer.h>
 #include <Poco/Net/HTTPRequestHandler.h>
@@ -16,15 +17,13 @@
 #include <string>
 #include <vector> 
 #include <Poco/SAX/ContentHandler.h>
-
 #include <Poco/SAX/SAXParser.h>
 #include <Poco/SAX/InputSource.h>
 #include <Poco/SAX/LexicalHandler.h>
 #include <Poco/SAX/Attributes.h>
 #include <Poco/SAX/Locator.h>
 
-#include "XmlLukija.h"
-#include "HttpKuuntelija.h"
+#include "XmlLukija.h"   //XmlLukija
 
 void HttpKuuntelija::handleRequest(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &resp)
   {
@@ -49,77 +48,24 @@ void HttpKuuntelija::lataa(Poco::Net::HTTPServerResponse &resp)
       salasanatiedosto.close();
       
       std::string kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Kaskinen&timestep=120";
-      /*
-Muita käypiä kyselyitä on.
-weather voidaan korvata:
-   lightning
-   mareograph       (merenpinnan korkeus)
-   radiation        (Auringon säteily)
-   wave             (aalto- ja lämpötiedot poijuilta)
-   weather::daily   (päivittäiset sade, lämmön keskiarvo ja ääriarvot)
-
-   fmisid - FMI observation station identifier.
-
-parameters:
-   Temperature
-   Pressure
-   Humidity
-   WindDirection
-   WindSpeedMS
-   WindUMS
-   WindVMS
-   MaximumWind
-Temperature, Pressure, Humidity, DewPoint, WindUMS, WindVMS and Precipitation1h
-   Käyttistä lienee myös vuorokauden- ja vuodenaika.
-*/
-
-      Poco::Net::HTTPClientSession sessio("data.fmi.fi");
-      Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_GET, kutsu);
-      sessio.sendRequest(request);
-      {Poco::Net::HTTPResponse vastaus;
-	std::istream& ladatut = sessio.receiveResponse(vastaus);
-	std::ofstream datatiedosto("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Kaskinen.xml");
-	Poco::StreamCopier::copyStream(ladatut, datatiedosto);}
-      
+      FMIkysely(kutsu, "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Kaskinen.xml");
       kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Helsinki&timestep=120";
-      request.setURI(kutsu);
-      sessio.sendRequest(request);
-      {Poco::Net::HTTPResponse vastaus;
-	std::istream& ladatut = sessio.receiveResponse(vastaus);
-	std::ofstream datatiedosto("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki.xml");
-	Poco::StreamCopier::copyStream(ladatut, datatiedosto);}
-      
+      FMIkysely(kutsu, "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki.xml");
 
-      {std::ifstream datat("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Kaskinen.xml");      
-	XmlLukija handlari("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Kaskinen.data", "DataBlock");
-	Poco::XML::SAXParser parseri;
-	parseri.setFeature(Poco::XML::XMLReader::FEATURE_NAMESPACES, true);
-	parseri.setFeature(Poco::XML::XMLReader::FEATURE_NAMESPACE_PREFIXES, true);
-	parseri.setContentHandler(&handlari);
-	parseri.setProperty(Poco::XML::XMLReader::PROPERTY_LEXICAL_HANDLER, static_cast<Poco::XML::LexicalHandler*>(&handlari));
+      parsiDataa("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Kaskinen.xml", 
+		 "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Kaskinen.data", 
+		 "DataBlock");
+      parsiDataa("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki.xml", 
+		 "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki.data", 
+		 "DataBlock");
 
-	Poco::XML::InputSource luettava(datat);
-	parseri.parse(& luettava);
-
-      datat.close();}
-
-      {std::ifstream datat("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki.xml");
-	XmlLukija handlari("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki.data");
-	handlari.asetaAvainsana("DataBlock");
-	Poco::XML::SAXParser parseri;
-	parseri.setFeature(Poco::XML::XMLReader::FEATURE_NAMESPACES, true);
-	parseri.setFeature(Poco::XML::XMLReader::FEATURE_NAMESPACE_PREFIXES, true);
-	parseri.setContentHandler(&handlari);
-	parseri.setProperty(Poco::XML::XMLReader::PROPERTY_LEXICAL_HANDLER, static_cast<Poco::XML::LexicalHandler*>(&handlari));
-	
-	Poco::XML::InputSource luettava(datat);
-	parseri.parse(& luettava);
-	
-	datat.close();}
-      
-      ulos << "<p>Datat ladattu ja tallennettu.</p>"
-       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/\">Takaisin.</a></p>";
-    }
+  ulos << "<h1>Heips!</h1>"
+       << "<p>Valitse vaihtoehdoista:</p>"
+       << "<p>Datat ladattu ja tallennettu.</p>"
+       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/opeta-algoritmi/\"><b>Opeta algoritmi</b> ladattujen tietojen perusteella.</a></p>"
+       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/ennuste/\"><b>Ennusta huomisen sadetilanne</b> Ilmatieteenlaitoksen tietojen perusteella.</a></p>";
+  ulos.flush();
+}
 
 void HttpKuuntelija::opeta(Poco::Net::HTTPServerResponse &resp)
 {
@@ -150,4 +96,32 @@ void HttpKuuntelija::valikko(Poco::Net::HTTPServerResponse &resp)
        << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/opeta-algoritmi/\"><b>Opeta algoritmi</b> ladattujen tietojen perusteella.</a></p>"
        << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/ennuste/\"><b>Ennusta huomisen sadetilanne</b> Ilmatieteenlaitoksen tietojen perusteella.</a></p>";
   ulos.flush();
+}
+
+void HttpKuuntelija::FMIkysely(std::string kutsu, std::string tiedosto) 
+{
+  Poco::Net::HTTPClientSession sessio("data.fmi.fi");
+  Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_GET, kutsu);
+  sessio.sendRequest(request);
+  Poco::Net::HTTPResponse vastaus;
+  std::istream& ladatut = sessio.receiveResponse(vastaus);
+  std::ofstream datatiedosto(tiedosto.c_str());
+  Poco::StreamCopier::copyStream(ladatut, datatiedosto);
+}
+
+void HttpKuuntelija::parsiDataa(std::string lukutiedosto, std::string kirjoitustiedosto, std::string avainsana)
+{
+  std::ifstream datat(lukutiedosto.c_str());
+  XmlLukija handlari(kirjoitustiedosto.c_str());
+  handlari.asetaAvainsana(avainsana);
+  Poco::XML::SAXParser parseri;
+  parseri.setFeature(Poco::XML::XMLReader::FEATURE_NAMESPACES, true);
+  parseri.setFeature(Poco::XML::XMLReader::FEATURE_NAMESPACE_PREFIXES, true);
+  parseri.setContentHandler(&handlari);
+  parseri.setProperty(Poco::XML::XMLReader::PROPERTY_LEXICAL_HANDLER, static_cast<Poco::XML::LexicalHandler*>(&handlari));
+	
+  Poco::XML::InputSource luettava(datat);
+  parseri.parse(& luettava);
+	
+  datat.close();
 }

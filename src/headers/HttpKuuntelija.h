@@ -16,7 +16,8 @@ class HttpKuuntelija : public Poco::Net::HTTPRequestHandler
   void ennuste(Poco::Net::HTTPServerResponse &resp);
   void opeta(Poco::Net::HTTPServerResponse &resp);
   void valikko(Poco::Net::HTTPServerResponse &resp);
-  void FMIkysely(std::string &kysely, std::string &tallennustiedosto);
+  void FMIkysely(std::string kutsu, std::string tiedosto);
+  void parsiDataa(std::string lukutiedosto, std::string kirjoitustiedosto, std::string avainsana);
 };
 
 #endif
