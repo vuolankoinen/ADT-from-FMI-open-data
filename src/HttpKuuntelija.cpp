@@ -22,42 +22,66 @@
 #include <Poco/SAX/LexicalHandler.h>
 #include <Poco/SAX/Attributes.h>
 #include <Poco/SAX/Locator.h>
+#include <limits> // NaN
+#include <sstream>
+#include <iomanip>
 
 #include "XmlLukija.h"   //XmlLukija
 
 void HttpKuuntelija::handleRequest(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &resp)
-  {
-    resp.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
+{
+  resp.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
 
-    if (req.getURI() == "/lataa/") {lataa(resp); return;}
-    if (req.getURI() == "/opeta-algoritmi/") {opeta(resp); return;}
-    if (req.getURI() == "/ennuste/") {ennuste(resp); return;}
+  if (req.getURI() == "/lataa/") {lataa(resp); return;}
+  if (req.getURI() == "/opeta-algoritmi/") {opeta(resp); return;}
+  if (req.getURI() == "/ennuste/") {ennuste(resp); return;}
 
-    valikko(resp);  //Muihin osoitteisiin tulevat kutsut.
+  valikko(resp);  //Muihin osoitteisiin tulevat kutsut.
     
-  }
+}
 
 void HttpKuuntelija::lataa(Poco::Net::HTTPServerResponse &resp)
 {
-      resp.setContentType("text/html");
-      std::ostream& ulos = resp.send();
-      std::string salausavain;
-      std::ifstream salasanatiedosto;
-      salasanatiedosto.open("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/fmi_avain");
-      getline(salasanatiedosto, salausavain);
-      salasanatiedosto.close();
+  resp.setContentType("text/html");
+  std::ostream& ulos = resp.send();
+  std::string salausavain;
+  std::ifstream salasanatiedosto;
+  salasanatiedosto.open("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/fmi_avain");
+  getline(salasanatiedosto, salausavain);
+  salasanatiedosto.close();
       
-      std::string kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Kaskinen&timestep=120";
-      FMIkysely(kutsu, "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Kaskinen.xml");
-      kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Helsinki&timestep=120";
-      FMIkysely(kutsu, "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki.xml");
+  std::string kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Helsinki&starttime=2013-07-21T20:00:00Z&endtime=2013-07-28T20:00:00&timestep=120&parameters=precipitation1h,wg_10min,vis,p_sea";
+  FMIkysely(kutsu, "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki2013.xml");
+  kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Helsinki&starttime=2015-07-14T20:00:00Z&endtime=2015-07-21T20:00:00&timestep=120&parameters=precipitation1h,wg_10min,vis,p_sea";
+  FMIkysely(kutsu, "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki2015.xml");
+  kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Helsinki&starttime=2016-07-13T20:00:00Z&endtime=2016-07-20T20:00:00&timestep=120&parameters=precipitation1h,wg_10min,vis,p_sea";
+  FMIkysely(kutsu, "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki2016.xml");
 
-      parsiDataa("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Kaskinen.xml", 
-		 "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Kaskinen.data", 
-		 "DataBlock");
-      parsiDataa("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki.xml", 
-		 "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki.data", 
-		 "DataBlock");
+  parsiDataa("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki2013.xml", 
+	     "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki2013.data", 
+	     "DataBlock");
+  parsiDataa("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki2015.xml", 
+	     "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki2015.data", 
+	     "DataBlock");
+  parsiDataa("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki2016.xml", 
+	     "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki2016.data", 
+	     "DataBlock");
+
+  std::ifstream luku("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki2013.data");
+  std::ofstream pos("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/satoi.data"); pos << ""; pos.close();
+  pos.open("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/satoi.data", std::ios::app);
+  std::ofstream neg("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/ei_satanut.data"); neg << ""; neg.close();
+  neg.open("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/ei_satanut.data", std::ios::app);
+  luokitteleDataa(luku, pos, neg);
+  luku.close();
+  luku.open("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki2015.data");
+  luokitteleDataa(luku, pos, neg);
+  luku.close();
+  luku.open("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/Helsinki2016.data");
+  luokitteleDataa(luku, pos, neg);
+  luku.close();
+  pos.close();
+  neg.close();
 
   ulos << "<h1>Heips!</h1>"
        << "<p>Valitse vaihtoehdoista:</p>"
@@ -119,9 +143,162 @@ void HttpKuuntelija::parsiDataa(std::string lukutiedosto, std::string kirjoitust
   parseri.setFeature(Poco::XML::XMLReader::FEATURE_NAMESPACE_PREFIXES, true);
   parseri.setContentHandler(&handlari);
   parseri.setProperty(Poco::XML::XMLReader::PROPERTY_LEXICAL_HANDLER, static_cast<Poco::XML::LexicalHandler*>(&handlari));
-	
+  
   Poco::XML::InputSource luettava(datat);
   parseri.parse(& luettava);
-	
+  
   datat.close();
+}
+
+//Luokittelee sen mukaan, onko rivin eka muuttuja nollasta poikkeava vai ei. Olettaa aloituskellonajaksi 20:00 ja askelpituudeksi 2 tuntia.
+void HttpKuuntelija::luokitteleDataa(std::istream& lukutiedosto, std::ostream& kirjoitustiedosto1, std::ostream& kirjoitustiedosto2) 
+/*{
+  std::string rivi, rivi2, ehdokas;
+  double luku;
+  int osoitin = 1, kellonaika = 20, laskuri;
+  std::vector<double> eka(4), toka(4), kolmas(4);
+  for (int tt = 0; tt < 2; tt++) {
+    getline(lukutiedosto, rivi);
+    std::stringstream ss(rivi);
+    laskuri = 0;
+    while (ss>>ehdokas) 
+      {
+	luku = s2d(ehdokas);
+	if (tt == 0) { eka[laskuri] = luku;} else { toka[laskuri] = luku;}
+	laskuri++;
+      }
+  }
+  getline(lukutiedosto, rivi);
+  {std::stringstream ss(rivi);
+  ss.str(rivi);
+  laskuri = 0;
+  while (ss>>ehdokas) 
+    {
+      luku = s2d(ehdokas);
+      kolmas[laskuri] = luku;
+      laskuri++;
+    }
+  } 
+  tulostaRivi(kellonaika, eka, kolmas,  toka, kirjoitustiedosto1);
+  }*/
+  // Kokeita varten seuraava varsinainen toteutus piilossa.
+{
+  std::string rivi, rivi2, ehdokas;
+  double luku;
+  int osoitin = 1, kirjoituskohde = 0, kellonaika = 20, laskuri, dim = 3;
+  std::vector<double> eka(4), toka(4), kolmas(4);
+  for (int tt = 0; tt < 2; tt++) {// Pari ekaa paivaa pohjille alkuun.
+    getline(lukutiedosto, rivi);
+    std::stringstream ss(rivi);
+    laskuri = 0;
+    while (ss>>ehdokas) 
+      {
+	luku = s2d(ehdokas);
+	if (tt == 0) {eka[laskuri] = luku;} else {toka[laskuri] = luku;}
+	laskuri++;
+      }
+    if (laskuri < dim) { // Katkonainen rivi.
+      laskuri = 0;
+      getline(lukutiedosto, rivi2);
+      rivi = rivi + rivi2;
+      ss.str(rivi);
+      while (ss>>ehdokas)  // Korjataan vajaa rivi.
+	{
+	  luku = s2d(ehdokas);
+	  if (tt == 0) { eka[laskuri] = luku;} else{ toka[laskuri] = luku;}
+	  laskuri++;
+	}
+    }
+  }
+  while (getline(lukutiedosto, rivi))
+    {
+      std::stringstream ss(rivi);
+      osoitin = osoitin == 2 ? 0 : osoitin + 1;
+      // Seuraava on turhan kankeaa (toisteista), voisi korvata paremmalla tavalla roikottaa kahta aiempaa rivii mukana.
+      if (osoitin == 0) {
+	laskuri = 0;
+	while (ss>>ehdokas) 
+	  {
+	    luku = s2d(ehdokas);
+	    eka[laskuri] = luku;
+	    laskuri++;
+	  }
+	if (laskuri < dim) { // Katkonainen rivi.
+	  laskuri = 0;
+	  getline(lukutiedosto, rivi2);
+	  rivi = rivi + rivi2;
+	  ss.str(rivi);
+	  while (ss>>ehdokas)  // Korjataan katkonainen rivi.
+	    {
+	      luku = s2d(ehdokas);
+	      eka[laskuri] = luku;
+	      laskuri++;
+	    }
+	}
+	tulostaRivi(kellonaika,  eka,  kolmas,  toka, eka[0] > 0.0 ? kirjoitustiedosto1 : kirjoitustiedosto2); // Kirjoitetaan rivi oikeaan tiedostoon.	
+      } else if (osoitin == 1) {
+	laskuri = 0;
+	while (ss>>ehdokas) 
+	  {
+	    luku = s2d(ehdokas);
+	    toka[laskuri] = luku;
+	    laskuri++;
+	  }
+	if (laskuri < dim) { // Vajaa rivi.
+	  laskuri = 0;
+	  getline(lukutiedosto, rivi2);
+	  rivi = rivi + rivi2;
+	  ss.str(rivi);
+	  while (ss>>ehdokas)  // Korjataan katkonainen rivi.
+	    {
+	      luku = s2d(ehdokas);
+	      toka[laskuri] = luku;
+	      laskuri++;
+	    }
+	}
+	tulostaRivi(kellonaika,  toka,  eka, kolmas, toka[0] > 0.0 ? kirjoitustiedosto1 : kirjoitustiedosto2); // Kirjoitetaan rivi oikeaan tiedostoon.	
+      } else {
+	laskuri = 0;
+	while (ss>>ehdokas) 
+	  {
+	    luku = s2d(ehdokas);
+	    kolmas[laskuri] = luku;
+	    laskuri++;
+	  }
+	if (laskuri < dim) { // Katkonainen rivi.
+	  laskuri = 0;
+	  getline(lukutiedosto, rivi2);
+	  rivi = rivi + rivi2;
+	  ss.str(rivi);
+	  while (ss>>ehdokas)  // Korjataan katkonainen rivi.
+	    {
+	      luku = s2d(ehdokas);
+	      kolmas[laskuri] = luku;
+	      laskuri++;
+	    }
+	}
+	tulostaRivi(kellonaika,  kolmas, toka,  eka, kolmas[0] > 0.0 ? kirjoitustiedosto1 : kirjoitustiedosto2); // Kirjoitetaan rivi oikeaan tiedostoon.	
+      }
+      kellonaika = (kellonaika == 22) ? 0 : kellonaika + 2; 
+    }
+}
+
+
+double HttpKuuntelija::s2d(std::string s) {
+  double d;
+  std::stringstream ss(s);
+  ss >> d;
+  if (d==0) { // Tarkistetaan NaN:in varalta.
+    if (s.find_first_of("0123456789") > s.size())  return std::numeric_limits<double>::quiet_NaN(); // Ei ole numeroa, joten NaN.
+  }
+  return d;
+}
+
+void HttpKuuntelija::tulostaRivi(int kellonaika, std::vector<double> datat1, std::vector<double> datat2, std::vector<double> datat3, std::ostream& tiedosto) 
+{
+  tiedosto << std::setw (2) << kellonaika << " ";
+  for (int tt = 0, viimeinen = datat1.size(); tt < viimeinen; tt++) tiedosto << std::setw(7) << datat1[tt] << " ";
+  for (int tt = 0, viimeinen = datat2.size(); tt < viimeinen; tt++) tiedosto << std::setw(7) << datat2[tt] << " ";
+  for (int tt = 0, viimeinen = datat3.size(); tt < viimeinen; tt++) tiedosto << std::setw(7) << datat3[tt] << " ";
+  tiedosto << std::endl;
 }

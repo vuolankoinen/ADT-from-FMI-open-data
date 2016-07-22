@@ -9,7 +9,7 @@
 #include <string>
 #include <vector> 
 
-#include "rajapinnat.h"  //MyRequestHandlerFactory 
+#include "HttpKuuntelijaleipuri.h"  //MyRequestHandlerFactory 
 
 
 class Palvelinsovellus : public Poco::Util::ServerApplication
@@ -17,7 +17,7 @@ class Palvelinsovellus : public Poco::Util::ServerApplication
 protected:
   int main(const std::vector<std::string> &)
   {
-    Poco::Net::HTTPServer palvelin(new MyRequestHandlerFactory, Poco::Net::ServerSocket(Poco::Net::SocketAddress("127.2.41.1:8080")), new Poco::Net::HTTPServerParams);
+    Poco::Net::HTTPServer palvelin(new HttpKuuntelijaleipuri, Poco::Net::ServerSocket(Poco::Net::SocketAddress("127.2.41.1:8080")), new Poco::Net::HTTPServerParams);
     palvelin.start();
     waitForTerminationRequest();
     palvelin.stop();
