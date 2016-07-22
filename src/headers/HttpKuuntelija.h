@@ -10,7 +10,8 @@
 class HttpKuuntelija : public Poco::Net::HTTPRequestHandler
 {
  public:
-  virtual void handleRequest(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &resp);
+  HttpKuuntelija();
+  void handleRequest(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &resp);
  private:
   // Vastaavat HTTP-kyselyihin:
   void lataa(Poco::Net::HTTPServerResponse &resp);
@@ -18,6 +19,7 @@ class HttpKuuntelija : public Poco::Net::HTTPRequestHandler
   void opeta(Poco::Net::HTTPServerResponse &resp);
   void valikko(Poco::Net::HTTPServerResponse &resp);
   // Toteuttavat muun toiminnallisuuden:
+  std::string salausavain;
   void FMIkysely(std::string kutsu, std::string tiedosto);
   void parsiDataa(std::string lukutiedosto, std::string kirjoitustiedosto, std::string avainsana);
   void luokitteleDataa(std::istream& lukutiedosto, std::ostream& kirjoitustiedosto1, std::ostream& kirjoitustiedosto2);

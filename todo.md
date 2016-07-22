@@ -8,3 +8,4 @@
 * classit structeiksi (sopii paremmin omaksuttuun "publicit ensin"-menettelyyn)
 * ladataan datat aikaleiman mukaan
 * ajoittaisten rivinvaihto-ongelmien korjaaminen parserista
+* tiedostonimien parametreina antamisen sijaan streameja
