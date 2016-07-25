@@ -19,10 +19,10 @@ struct HttpKuuntelija : public Poco::Net::HTTPRequestHandler
   void valikko(Poco::Net::HTTPServerResponse &resp);
   // Toteuttavat muun toiminnallisuuden:
   std::string salausavain;
-  std::string viimeisin_lataus;
+  int viimeisin_lataus;
   void FMIkysely(std::string kutsu, std::string tiedosto);
   void parsiDataa(std::string lukutiedosto, std::string kirjoitustiedosto, std::string avainsana);
-  void luokitteleDataa(std::istream& lukutiedosto, std::ostream& kirjoitustiedosto1, std::ostream& kirjoitustiedosto2);
+  void luokitteleDataa(std::istream& lukutiedosto, std::ostream& kirjoitustiedosto1, std::ostream& kirjoitustiedosto2, int kellonaika);
   void tulostaRivi(int kellonaika, std::vector<double> datat1, std::vector<double> datat2, std::vector<double> datat3, std::ostream& tiedosto);
   double s2d(std::string s);
 };
