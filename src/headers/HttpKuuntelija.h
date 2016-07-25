@@ -7,9 +7,8 @@
 #include <iostream>
 #include <string>
 
-class HttpKuuntelija : public Poco::Net::HTTPRequestHandler
+struct HttpKuuntelija : public Poco::Net::HTTPRequestHandler
 {
- public:
   HttpKuuntelija();
   void handleRequest(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &resp);
  private:
@@ -20,6 +19,7 @@ class HttpKuuntelija : public Poco::Net::HTTPRequestHandler
   void valikko(Poco::Net::HTTPServerResponse &resp);
   // Toteuttavat muun toiminnallisuuden:
   std::string salausavain;
+  std::string viimeisin_lataus;
   void FMIkysely(std::string kutsu, std::string tiedosto);
   void parsiDataa(std::string lukutiedosto, std::string kirjoitustiedosto, std::string avainsana);
   void luokitteleDataa(std::istream& lukutiedosto, std::ostream& kirjoitustiedosto1, std::ostream& kirjoitustiedosto2);

@@ -32,12 +32,14 @@
 
 HttpKuuntelija::HttpKuuntelija() 
 {
-  std::ifstream salasanatiedosto;
-  salasanatiedosto.open("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/fmi_avain");
-std::string avain;
-  getline(salasanatiedosto, avain);
-salausavain = avain;
+  std::ifstream salasanatiedosto("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/fmi_avain");
+  //  std::string avain;
+  getline(salasanatiedosto, salausavain);//(salasanatiedosto, avain);
+  //  salausavain = avain;
   salasanatiedosto.close();
+  std::ifstream aikatiedosto("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/viimeisin_lataus");
+  getline(aikatiedosto, viimeisin_lataus);
+  aikatiedosto.close();
 }
 
 void HttpKuuntelija::handleRequest(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &resp)
@@ -90,12 +92,22 @@ void HttpKuuntelija::lataa(Poco::Net::HTTPServerResponse &resp)
   pos.close();
   neg.close();
 
+  time_t aika;
+  time(&aika);
+  struct tm * ptr = gmtime(&aika);
+  char buffer [80];
+  strftime (buffer,80,"%Y-%m-%dT%H:%M:00Z", ptr);
+  std::ofstream aikatiedosto("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/viimeisin_lataus");
+  aikatiedosto << buffer;
+  aikatiedosto.close();
+
   ulos << "<h1>Heips!</h1>"
        << "<p>Valitse vaihtoehdoista:</p>"
        << "<p>Datat ladattu ja tallennettu.</p>"
-       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/opeta-algoritmi/\"><b>Opeta algoritmi</b> ladattujen tietojen perusteella.</a></p>"
+       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/opeta-algoritmi/\"><b>Opeta ADT-algoritmi</b> ladattujen tietojen perusteella.</a></p>"
        << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/ennuste/\"><b>Ennusta huomisen sadetilanne</b> Ilmatieteenlaitoksen tietojen perusteella.</a></p>";
   ulos.flush();
+
 }
 
 void HttpKuuntelija::opeta(Poco::Net::HTTPServerResponse &resp)
@@ -111,7 +123,7 @@ void HttpKuuntelija::ennuste(Poco::Net::HTTPServerResponse &resp)
 {
   time_t aika;
   time(&aika);
-  struct tm * ptr = localtime(&aika);
+  struct tm * ptr = gmtime(&aika);
   char buffer [80];
   strftime (buffer,80,"%Y-%m-%dT%H:%M:00Z", ptr);
   std::string muotoiltu_aika = buffer, rivi; 
@@ -137,9 +149,11 @@ void HttpKuuntelija::valikko(Poco::Net::HTTPServerResponse &resp)
   std::ostream& ulos = resp.send();
   ulos << "<h1>Heips!</h1>"
        << "<p>Valitse vaihtoehdoista:</p>"
-       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/lataa/\"><b>Lataa meteorologiset tiedot</b> Ilmatieteenlaitoksen sivulta sovellukselle.</a></p>"
-       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/opeta-algoritmi/\"><b>Opeta algoritmi</b> ladattujen tietojen perusteella.</a></p>"
-       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/ennuste/\"><b>Ennusta huomisen sadetilanne</b> Ilmatieteenlaitoksen tietojen perusteella.</a></p>";
+       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/lataa/\"><b>Lataa meteorologiset tiedot</b> Ilmatieteenlaitoksen sivulta sovellukselle.</a>";
+  ulos << " Datat on viimeksi ladattu: " << viimeisin_lataus;
+  if (viimeisin_lataus == "")   ulos << "ei sitten palvelimen edellisen huoltokatkon";
+  ulos << "</p><p><a href=\"http://ml-vuolankoinen.rhcloud.com/opeta-algoritmi/\"><b>Opeta algoritmi</b> ladattujen tietojen perusteella.</a></p>"
+       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/ennuste/\"><b>Ennusta sadetilanne seuraavien kahden tunnin aikana</b> Ilmatieteenlaitoksen tietojen perusteella.</a></p>";
   ulos.flush();
 }
 

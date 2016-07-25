@@ -10,14 +10,16 @@
 #include <Poco/SAX/Locator.h>
 
 //http://poco.roundsquare.net/2010/08/08/pocoxmlsaxparser/
-class XmlLukija : public Poco::XML::ContentHandler, public Poco::XML::LexicalHandler
+struct XmlLukija : public Poco::XML::ContentHandler, public Poco::XML::LexicalHandler
 {
+ private:
   std::ofstream tiedosto;
   int kirjoitetaan;
   std::string avain;
+
  public:
   XmlLukija(std::string nimi);
-  XmlLukija(std::string nimi, std::string avainsana );
+  XmlLukija(std::string nimi, std::string avainsana);
   //omat
   void asetaAvainsana(std::string avainsana);
   // ContentHandler
