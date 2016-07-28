@@ -6,6 +6,7 @@
 #include <Poco/Net/HTTPServerResponse.h>
 #include <iostream>
 #include <string>
+#include "ADT.h"
 
 struct HttpKuuntelija : public Poco::Net::HTTPRequestHandler
 {
@@ -19,7 +20,8 @@ struct HttpKuuntelija : public Poco::Net::HTTPRequestHandler
   void valikko(Poco::Net::HTTPServerResponse &resp);
   // Toteuttavat muun toiminnallisuuden:
   std::string salausavain;
-  int viimeisin_lataus;
+  int viimeisin_lataus; 
+  ADT puu;
   void FMIkysely(std::string kutsu, std::string tiedosto);
   void parsiDataa(std::string lukutiedosto, std::string kirjoitustiedosto, std::string avainsana);
   void luokitteleDataa(std::istream& lukutiedosto, std::ostream& kirjoitustiedosto1, std::ostream& kirjoitustiedosto2, int kellonaika);

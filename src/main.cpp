@@ -1,4 +1,4 @@
-/* Luo ja käynnistää palvelinsovelluksen. 
+/* Luo ja kÃ¤ynnistÃ¤Ã¤ palvelinsovelluksen. 
    Palvelinsovelluksen luonteen sanelevat kokonaan rajapinnasta saatavat RequestHandlerFactory ja sen luomat RequestHandlerit.*/
 
 #include <Poco/Net/ServerSocket.h>

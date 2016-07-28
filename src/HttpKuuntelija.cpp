@@ -29,6 +29,9 @@
 #include <cstdio> // sprintf
 
 #include "XmlLukija.h"   //XmlLukija
+#include "ADT.h"
+#include "ADT_opettaja.h"
+
 
 HttpKuuntelija::HttpKuuntelija() 
 {
@@ -58,19 +61,6 @@ void HttpKuuntelija::lataa(Poco::Net::HTTPServerResponse &resp)
   time(&aika);
   struct tm * hetki_ptr = gmtime(&aika);
   {  // Laitetaan latausaika muistiin.
-    /*
-    char buffer [80];
-    time_t Suomen_aika = aika;
-    Suomen_aika += 10800;
-    //Suomen_aika += hetki_ptr->tm_isdst > 0 ? 3600 : 0; // Talviaikaa varten.
-    struct tm * Suomessa_ptr = localtime(&Suomen_aika);
-    sprintf (buffer, "%.2u.%.2u.%u kello %.u2:%.2u", 
-	     Suomessa_ptr->tm_mday,
-	     Suomessa_ptr->tm_mon,
-	     Suomessa_ptr->tm_year + 1900,
-	     Suomessa_ptr->tm_hour,
-	     Suomessa_ptr->tm_min);
-*/
     std::ofstream aikatiedosto("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/viimeisin_lataus");
     aikatiedosto << aika;
     aikatiedosto.close();
@@ -131,40 +121,74 @@ void HttpKuuntelija::lataa(Poco::Net::HTTPServerResponse &resp)
        << "<p>Valitse vaihtoehdoista:</p>"
        << "<p>Datat ladattu ja tallennettu.</p>"
        << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/opeta-algoritmi/\"><b>Opeta ADT-algoritmi</b> ladattujen tietojen perusteella.</a></p>"
-       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/ennuste/\"><b>Ennusta huomisen sadetilanne</b> Ilmatieteen laitoksen tietojen perusteella.</a></p>";
+       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/ennuste/\"><b>Ennusta huomisen sadetilanne Helsingin tienoilla</b> Ilmatieteen laitoksen tietojen perusteella.</a></p>";
   ulos.flush();
 
 }
 
 void HttpKuuntelija::opeta(Poco::Net::HTTPServerResponse &resp)
 {
+  std::ifstream pos("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/satoi.data");
+  std::ifstream neg("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/ei_satanut.data");
+  ADT_opettaja ope(pos, neg);
+  {
+    ADT puu2(ope.ekaEnnustearvo());
+    puu = puu2;
+  }
+  puu.uusiaHaaroja(4, ope);
   resp.setContentType("text/html");
   std::ostream& ulos = resp.send(); // ostreamit voisi tulla parametreina
-  ulos << "<h1>Toiminnallisuus on vasta toteutettavana...</h1>"
-       << "<p>...</p>"
+  ulos << "<h1>Puu on kasvatettu nelihaaraiseksi.</h1>"
+       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/ennuste/\"><b>Ennusta huomisen sadetilanne Helsingin tienoilla</b> Ilmatieteen laitoksen tietojen perusteella.</a></p>"
        << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/\">Takaisin.</a></p>";
 }
 
 void HttpKuuntelija::ennuste(Poco::Net::HTTPServerResponse &resp)
 {
+  resp.setContentType("text/html");
+  std::ostream& ulos = resp.send();
+  std::string rivi, vikarivi;
+  std::vector<double> kaisaniemi;
   time_t aika;
   time(&aika);
   struct tm * hetki_ptr = gmtime(&aika);
-  char buffer [80];
-  strftime (buffer,80,"%Y-%m-%dT%H:%M:00Z", hetki_ptr);
-  std::string muotoiltu_aika = buffer, rivi; 
-  std::string kutsu  = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Helsinki&starttime=" + muotoiltu_aika  + "&parameters=precipitation1h,wg_10min,vis,p_sea";
-  FMIkysely(kutsu, "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/nyky.xml");
-  parsiDataa("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/nyky.xml", 
+  int tunti =  hetki_ptr->tm_hour;
+  kaisaniemi.push_back(tunti);
+  for (int tt = 0; tt < 2; ++tt)
+  {
+    char loppuaika [50]; 
+    char alkuaika [50];
+    sprintf (loppuaika, "%u-%.2u-%.2uT%.2u:00:00Z", 
+	     (hetki_ptr->tm_year + 1900), 
+	     hetki_ptr->tm_mon,
+	     tunti > 0 ? hetki_ptr->tm_mday : hetki_ptr->tm_mday - tt,
+	     tunti > 0 ? tunti - tt : 23);
+    sprintf (alkuaika, "%u-%.2u-%.2uT%.2u:00:00Z", 
+	     (hetki_ptr->tm_year + 1900), 
+	     hetki_ptr->tm_mon,
+	     tunti > 2 ? hetki_ptr->tm_mday : hetki_ptr->tm_mday - tt,
+	     tunti > 2 ? tunti -1- tt : tunti + 23  -tt);
+    std::string kutsu  = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Helsinki&parameters=ri_10min,wg_10min,vis,p_sea&endtime=" + loppuaika + "&starttime=" + alkuaika;
+    FMIkysely(kutsu, "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/nyky.xml");
+    parsiDataa("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/nyky.xml", 
 	     "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/nyky.data", 
 	     "DataBlock");
-
-  resp.setContentType("text/html");
-  std::ostream& ulos = resp.send();
-  std::ifstream tiedot("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/nyky.data");
-  ulos << "<h1>Toiminnallisuus on vasta toteutettavana...</h1>" << "<p>Aika nyt: " << muotoiltu_aika << "</p>";
-  while (getline(tiedot, rivi)){
-    ulos << "<p>" << rivi << "</p>";}
+    std::ifstream tiedot("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/nyky.data");
+    while (getline(tiedot, rivi)) {if (rivi != "") vikarivi = rivi;}
+    std::stringstream ss(vikarivi);
+    std::string luku;
+    while (ss>>luku) kaisaniemi.push_back(s2d(luku));
+  }
+  ulos << "<p>Viimeisin meteorologinen tieto, Kaisaniemi:<br />"
+       << "sadetta:             "<< kaisaniemi[1] << "<br />"
+       << "puuskanopeus:        "<< kaisaniemi[2] << "<br />"
+       << "visuaalinen kantama: "<< kaisaniemi[3] << "<br />"
+       << "ilmanpaine:          "<< kaisaniemi[4] << "<br />"
+       <<"</p>";
+  double enne = puu.ennuste(kaisaniemi);
+  if (enne < 0)  ulos << "<p>ADT-puun mukaan luvassa ei ole sadetta.</p>";
+  if (enne > 0)  ulos << "<p>ADT-puun mukaan luvassa on sadetta.</p>";
+  ulos << "<p>Ennusteen varmuusaste:  "<< enne<<"   (Nollan tienoilla ennusteessa ei ole varmuutta.)</p>";
   ulos << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/\">Takaisin.</a></p>";
 }
 
@@ -189,8 +213,8 @@ void HttpKuuntelija::valikko(Poco::Net::HTTPServerResponse &resp)
     ulos << "hetki sitten.";
   } 
 
-  ulos << "</p><p><a href=\"http://ml-vuolankoinen.rhcloud.com/opeta-algoritmi/\"><b>Opeta algoritmi</b> ladattujen tietojen perusteella.</a></p>"
-       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/ennuste/\"><b>Ennusta sadetilanne seuraavien kahden tunnin aikana</b> Ilmatieteen laitoksen tietojen perusteella.</a></p>";
+  ulos << "</p><p><a href=\"http://ml-vuolankoinen.rhcloud.com/opeta-algoritmi/\"><b>Opeta algoritmi</b> ladattujen Ilmatieteen laitoksen tietojen perusteella.</a></p>"
+       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/ennuste/\"><b>Ennusta sadetilanne Helsingin tienoilla seuraavien kahden tunnin aikana</b>.</a></p>";
   ulos.flush();
 }
 
@@ -339,7 +363,7 @@ double HttpKuuntelija::s2d(std::string s) {
 void HttpKuuntelija::tulostaRivi(int kellonaika, std::vector<double> datat1, std::vector<double> datat2, std::vector<double> datat3, std::ostream& tiedosto) 
 {
   tiedosto << std::setw (2) << kellonaika << " ";
-  for (int tt = 0, viimeinen = datat1.size(); tt < viimeinen; tt++) tiedosto << std::setw(7) << datat1[tt] << " ";
+  /*  for (int tt = 0, viimeinen = datat1.size(); tt < viimeinen; tt++) tiedosto << std::setw(7) << datat1[tt] << " ";// Pois, koska samanhetkiset tiedot ovat ennustamiseen melko hoopoja. .*/
   for (int tt = 0, viimeinen = datat2.size(); tt < viimeinen; tt++) tiedosto << std::setw(7) << datat2[tt] << " ";
   for (int tt = 0, viimeinen = datat3.size(); tt < viimeinen; tt++) tiedosto << std::setw(7) << datat3[tt] << " ";
   tiedosto << std::endl;
