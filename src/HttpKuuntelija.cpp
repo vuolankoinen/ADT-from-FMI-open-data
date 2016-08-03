@@ -105,7 +105,8 @@ void HttpKuuntelija::lataa(Poco::Net::HTTPServerResponse &resp)
   
   for (int tt = 0; tt < ladattavia_vuosia; tt++) // Ladataan, parsitaan ja tallennetaan tiedot.
     {
-      kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Helsinki&starttime=" + alkuajat[tt]  + "&endtime=" + loppuajat[tt]  + "&timestep=120&parameters=precipitation1h,wg_10min,vis,p_sea";
+      //      kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Helsinki&starttime=" + alkuajat[tt]  + "&endtime=" + loppuajat[tt]  + "&timestep=120&parameters=precipitation1h,wg_10min,vis,p_sea"; // Tietyt parametrit.
+      kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Helsinki&starttime=" + alkuajat[tt]  + "&endtime=" + loppuajat[tt]  + "&timestep=120"; // Oletusparametrit.
 
       FMIkysely(kutsu, xmlt[tt]);
       parsiDataa(xmlt[tt], parsitut_datat[tt], "DataBlock");
