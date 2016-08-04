@@ -105,8 +105,7 @@ void HttpKuuntelija::lataa(Poco::Net::HTTPServerResponse &resp)
   
   for (int tt = 0; tt < ladattavia_vuosia; tt++) // Ladataan, parsitaan ja tallennetaan tiedot.
     {
-      //      kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Helsinki&starttime=" + alkuajat[tt]  + "&endtime=" + loppuajat[tt]  + "&timestep=120&parameters=precipitation1h,wg_10min,vis,p_sea"; // Tietyt parametrit.
-      kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Helsinki&starttime=" + alkuajat[tt]  + "&endtime=" + loppuajat[tt]  + "&timestep=120"; // Oletusparametrit.
+      kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Helsinki&starttime=" + alkuajat[tt]  + "&endtime=" + loppuajat[tt]  + "&timestep=120&parameters=r_1h,t2m,ws_10min,wg_10min,wd_10min,rh,td,p_sea,vis,n_man";
 
       FMIkysely(kutsu, xmlt[tt]);
       parsiDataa(xmlt[tt], parsitut_datat[tt], "DataBlock");
@@ -169,7 +168,7 @@ void HttpKuuntelija::ennuste(Poco::Net::HTTPServerResponse &resp)
 	     hetki_ptr->tm_mon,
 	     tunti > 2 ? hetki_ptr->tm_mday : hetki_ptr->tm_mday - tt,
 	     tunti > 2 ? tunti -1- tt : tunti + 23  -tt);
-    std::string kutsu  = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Helsinki&parameters=ri_10min,wg_10min,vis,p_sea&endtime=" + loppuaika + "&starttime=" + alkuaika;
+    std::string kutsu  = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Helsinki&parameters=ri_10min,t2m,ws_10min,wg_10min,wd_10min,rh,td,p_sea,vis,n_man&endtime=" + loppuaika + "&starttime=" + alkuaika;
     FMIkysely(kutsu, "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/nyky.xml");
     parsiDataa("/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/nyky.xml", 
 	     "/var/lib/openshift/574a156e0c1e6668bd000175/app-root/runtime/data/nyky.data", 
@@ -182,14 +181,20 @@ void HttpKuuntelija::ennuste(Poco::Net::HTTPServerResponse &resp)
   }
   ulos << "<p>Viimeisin meteorologinen tieto, Kaisaniemi:<br />"
        << "sadetta:             "<< kaisaniemi[1] << "<br />"
-       << "puuskanopeus:        "<< kaisaniemi[2] << "<br />"
-       << "visuaalinen kantama: "<< kaisaniemi[3] << "<br />"
-       << "ilmanpaine:          "<< kaisaniemi[4] << "<br />"
+       << "asteita:        "<< kaisaniemi[2] << "<br />"
+       << "tuulennopeus:        "<< kaisaniemi[3] << "<br />"
+       << "puuskanopeus:        "<< kaisaniemi[4] << "<br />"
+       << "tuulen suunta:        "<< kaisaniemi[5] << "<br />"
+       << "suhteellinen kosteus: "<< kaisaniemi[6] << "<br />"
+       << "kastepiste: "<< kaisaniemi[7] << "<br />"
+       << "ilmanpaine:          "<< kaisaniemi[8] << "<br />"
+       << "visuaalinen kantama: "<< kaisaniemi[9] << "<br />"
+       << "pilvenpeitto: "<< kaisaniemi[10] << "<br />"
        <<"</p>";
   double enne = puu.ennuste(kaisaniemi);
   if (enne < 0)  ulos << "<p>ADT-puun mukaan luvassa ei ole sadetta.</p>";
   if (enne > 0)  ulos << "<p>ADT-puun mukaan luvassa on sadetta.</p>";
-  ulos << "<p>Ennusteen varmuusaste:  "<< enne<<"   (Nollan tienoilla ennusteessa ei ole varmuutta.)</p>";
+  ulos << "<p>Ennusteen varmuusaste:  "<< enne<<"   (Nollan tienoilla ennusteessa ei ole varmuutta. Jos varmuus on tasan nolla, kannattaa uusia algoritmin opetus.)</p>";
   ulos << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/\">Takaisin.</a></p>";
 }
 
@@ -252,8 +257,8 @@ void HttpKuuntelija::luokitteleDataa(std::istream& lukutiedosto, std::ostream& k
 {
   std::string rivi, rivi2, ehdokas;
   double luku;
-  int osoitin = 1, kirjoituskohde = 0, laskuri, dim = 3;
-  std::vector<double> eka(4), toka(4), kolmas(4);
+  int osoitin = 1, kirjoituskohde = 0, laskuri, dim = 9; // dim on parametrien lukum. -1
+  std::vector<double> eka(dim +1), toka(dim +1), kolmas(dim +1);
   for (int tt = 0; tt < 2; tt++) {// Pari ekaa paivaa pohjille alkuun.
     getline(lukutiedosto, rivi);
     std::stringstream ss(rivi);
