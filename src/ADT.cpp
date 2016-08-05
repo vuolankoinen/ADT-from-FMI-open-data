@@ -1,12 +1,13 @@
 #include "ADT.h"
 #include <vector>
 #include <set>
-#include <algorithm> // sort
+#include <algorithm> // sort, find
 #include <limits> // NaN
 #include <cmath> // log (= ln)
 #include "ADT_opettaja.h"
 
 #include <iostream>//deb
+#include <sstream> // rakennetta varten
 
 //Tyhjille datoille seulat!
 //Painokertoimet boostauksen mukaisesti!
@@ -48,6 +49,18 @@ std::cout << " Tulos lisayksen (oikea haara) jälkeen: " << tulos <<std::endl;//
   return tulos;
 }
 
+std::string ADT::rakenne(std::string sisennys = "")
+{
+std::string tulos = sisennys + static_cast<std::ostringstream*>( &(std::ostringstream() << ennustearvo) )->str() + "<br />";
+for (int tt = 0, loppu = ehtomuuttujat.size(); tt < loppu; ++tt)
+  {
+    tulos = tulos + sisennys +  "Muuttuja -> " + static_cast<std::ostringstream*>( &(std::ostringstream() << ehtomuuttujat[tt]) )->str() + " | " + static_cast<std::ostringstream*>( &(std::ostringstream() << ehtojenJakokohdat[tt]) )->str() + " <- jakopiste<br />";
+    tulos = tulos + sisennys + "Vasen haara:<br />" + (haarat[2*tt]).rakenne(sisennys + ".....") + "<br />";
+    tulos = tulos + sisennys + "Oikea haara:<br />" + (haarat[2*tt+1]).rakenne(sisennys + ".....") + "<br />";
+}
+ return tulos;
+}
+
 // *******
 // Privat:
 
@@ -57,7 +70,7 @@ double ADT::parasZarvo(std::vector<int> osajoukko, ADT_opettaja ope)
 
   for (int tt = 0, loppu = ope.dimensio(); tt < loppu; ++tt)
     {
-std::cout << "\nJakopisteet muuttujalle " << tt << ": ";
+if (std::find(ehtomuuttujat.begin(),ehtomuuttujat.end(),tt) != ehtomuuttujat.end()) continue; // Jatka, jos muuttujalle on jo jakoehto.
       std::vector<double> ehdokkaat_jakopisteiksi = ope.mahdollisetJakopisteet(osajoukko, tt);
       for (std::vector<double>::iterator jako_ptr = ehdokkaat_jakopisteiksi.begin(), vika = ehdokkaat_jakopisteiksi.end(); jako_ptr != vika; ++jako_ptr)
 	{	
@@ -65,14 +78,15 @@ std::cout << "\nJakopisteet muuttujalle " << tt << ": ";
 	  tulos = tulos < ehdokas ? tulos : ehdokas;
 	}
     }
-std::cout << "  omista haaroista paras Z-arvo: " << tulos << std::endl;//deb
+//std::cout << "  omista haaroista paras Z-arvo: " << tulos << std::endl;//deb
     
   if (ehtomuuttujat.size() > 0)
     for (int tt = 0, viimeinen = ehtomuuttujat.size(); tt < viimeinen; ++tt)
       { // Rekursiolla kaikki alipuut.
-	std::cout << "     Liikutaan alipuuhun: " << tt << std::endl;//deb
+	std::cout << "     Liikutaan alipuuhun: " << 2*tt << std::endl;//deb
 ehdokas = (haarat[2*tt]).parasZarvo(ope.vasenHaara(osajoukko, ehtomuuttujat[tt], ehtojenJakokohdat[tt]), ope);
 	tulos = tulos < ehdokas ? tulos : ehdokas;
+	std::cout << "     Liikutaan alipuuhun: " << 2*tt+1 << std::endl;//deb
 ehdokas = (haarat[2*tt+1]).parasZarvo(ope.oikeaHaara(osajoukko, ehtomuuttujat[tt], ehtojenJakokohdat[tt]), ope);
 	tulos = tulos < ehdokas ? tulos : ehdokas;
       } 
@@ -84,12 +98,12 @@ int ADT::uusiHaaraZarvolle(double parasZarvo, std::vector<int> osajoukko, ADT_op
 {
   for (int tt = 0, loppu = ope.dimensio(); tt < loppu; ++tt)
     { // Kolutaan kaikki vapaat muuttujat uuden parhaan jakoehdon toivossa.
+
       std::vector<double> ehdokkaat_jakopisteiksi = ope.mahdollisetJakopisteet(osajoukko, tt);
       for (std::vector<double>::iterator jako_ptr = ehdokkaat_jakopisteiksi.begin(), vika = ehdokkaat_jakopisteiksi.end(); jako_ptr != vika; ++jako_ptr)
 	if (ope.Zarvo(osajoukko, tt, *jako_ptr) == parasZarvo)
 	  { // Hep! Luodaan siis uusi jakoehto.
-std::cout << "ehtomuuttujia: " << ehtomuuttujat.size();
-
+	    if (std::find(ehtomuuttujat.begin(),ehtomuuttujat.end(),tt) != ehtomuuttujat.end()) continue; // Jatka, jos muuttujalle on jo jakoehto.
 	    std::cout <<std::endl<< "************************" << "Paras Z-arvo ja sen sijainti tiedossa! Luodaan uusi haara!! " << std::endl << "Ensin muuttujatiedot."<< std::endl;//deb
 std::cout << " Muuttuja: "<<tt << " jakopiste" << *jako_ptr<< std::endl;//deb
 

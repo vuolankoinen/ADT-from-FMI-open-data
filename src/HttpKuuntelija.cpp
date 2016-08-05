@@ -66,7 +66,7 @@ void HttpKuuntelija::lataa(Poco::Net::HTTPServerResponse &resp)
     aikatiedosto.close();
   }
 
-  int ladattavia_vuosia = 2; // Monelta vuodelta ladataan tiedot.
+  int ladattavia_vuosia = 4; // Monelta vuodelta ladataan tiedot.
   std::vector< std::string> alkuajat(ladattavia_vuosia);
   std::vector< std::string> loppuajat(ladattavia_vuosia);
   std::vector< std::string> xmlt(ladattavia_vuosia);
@@ -76,7 +76,7 @@ void HttpKuuntelija::lataa(Poco::Net::HTTPServerResponse &resp)
       char buffer1 [50], buffer2 [50], buffer3 [80], buffer4 [80];
       sprintf (buffer1, "%u-%.2u-%.2uT%.2u:%.2u:00Z", 
 	       (hetki_ptr->tm_year - tt + 1900), 
-	       ( (hetki_ptr->tm_mday > 6) ? (hetki_ptr->tm_mon) : (hetki_ptr->tm_mon -1) ), 
+	       ( (hetki_ptr->tm_mday > 6) ? (hetki_ptr->tm_mon) : ((hetki_ptr->tm_mday > 4) ? hetki_ptr->tm_mon : hetki_ptr->tm_mon -1) ), 
 	       ( (hetki_ptr->tm_mday > 6) ? (hetki_ptr->tm_mday - 6) : ((hetki_ptr->tm_mday > 4) ? 1 : (31 - hetki_ptr->tm_mday))), 
 	       hetki_ptr->tm_hour, 
 	       hetki_ptr->tm_min);
@@ -105,7 +105,10 @@ void HttpKuuntelija::lataa(Poco::Net::HTTPServerResponse &resp)
   
   for (int tt = 0; tt < ladattavia_vuosia; tt++) // Ladataan, parsitaan ja tallennetaan tiedot.
     {
-      kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Helsinki&starttime=" + alkuajat[tt]  + "&endtime=" + loppuajat[tt]  + "&timestep=120&parameters=r_1h,t2m,ws_10min,wg_10min,wd_10min,rh,td,p_sea,vis,n_man";
+      kutsu = "/fmi-apikey/" + salausavain + "/wfs?request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=Helsinki&starttime=" + alkuajat[tt]  + "&endtime=" + loppuajat[tt] + "&timestep=120&parameters=r_1h,t2m,ws_10min,wg_10min,wd_10min,rh,td,p_sea,vis,n_man";
+     ulos << "<p>alkuaika: "<<alkuajat[tt]<<"</p>";
+     ulos << "<p>loppuaika: "<<loppuajat[tt]<<"</p>";
+      ulos << "<p>"<<kutsu<<"</p>";
 
       FMIkysely(kutsu, xmlt[tt]);
       parsiDataa(xmlt[tt], parsitut_datat[tt], "DataBlock");
@@ -139,6 +142,7 @@ void HttpKuuntelija::opeta(Poco::Net::HTTPServerResponse &resp)
   resp.setContentType("text/html");
   std::ostream& ulos = resp.send(); // ostreamit voisi tulla parametreina
   ulos << "<h1>Puu on kasvatettu nelihaaraiseksi.</h1>"
+       << "<p>" << puu.rakenne("") << "</p>"
        << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/ennuste/\"><b>Ennusta huomisen sadetilanne Helsingin tienoilla</b> Ilmatieteen laitoksen tietojen perusteella.</a></p>"
        << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/\">Takaisin.</a></p>";
 }
