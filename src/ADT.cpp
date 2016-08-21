@@ -66,32 +66,35 @@ for (int tt = 0, loppu = ehtomuuttujat.size(); tt < loppu; ++tt)
 
 double ADT::parasZarvo(std::vector<int> osajoukko, ADT_opettaja ope) 
 { 
-  double tulos = 100000.0, ehdokas = 0.0;
-
-  for (int tt = 0, loppu = ope.dimensio(); tt < loppu; ++tt)
-    {
+double tulos = 100000.0, ehdokas = 100001.0;
+/*
+// Tarpeeton jakopisteiden karsimiselta
+if (ope.onko_lehti(osajoukko)) return tulos; // Jatka, jos haara onkin lehti.
+*/
+for (int tt = 0, loppu = ope.dimensio(); tt < loppu; ++tt)
+  {
 if (std::find(ehtomuuttujat.begin(),ehtomuuttujat.end(),tt) != ehtomuuttujat.end()) continue; // Jatka, jos muuttujalle on jo jakoehto.
-      std::vector<double> ehdokkaat_jakopisteiksi = ope.mahdollisetJakopisteet(osajoukko, tt);
-      for (std::vector<double>::iterator jako_ptr = ehdokkaat_jakopisteiksi.begin(), vika = ehdokkaat_jakopisteiksi.end(); jako_ptr != vika; ++jako_ptr)
-	{	
-	  ehdokas = ope.Zarvo(osajoukko, tt, *jako_ptr);
-	  tulos = tulos < ehdokas ? tulos : ehdokas;
-	}
-    }
+std::vector<double> ehdokkaat_jakopisteiksi = ope.mahdollisetJakopisteet(osajoukko, tt);
+for (std::vector<double>::iterator jako_ptr = ehdokkaat_jakopisteiksi.begin(), vika = ehdokkaat_jakopisteiksi.end(); jako_ptr != vika; ++jako_ptr)
+  {	
+ehdokas = ope.Zarvo(osajoukko, tt, *jako_ptr);
+tulos = tulos < ehdokas ? tulos : ehdokas;
+}
+}
 //std::cout << "  omista haaroista paras Z-arvo: " << tulos << std::endl;//deb
     
-  if (ehtomuuttujat.size() > 0)
-    for (int tt = 0, viimeinen = ehtomuuttujat.size(); tt < viimeinen; ++tt)
-      { // Rekursiolla kaikki alipuut.
-	std::cout << "     Liikutaan alipuuhun: " << 2*tt << std::endl;//deb
+if (ehtomuuttujat.size() > 0)
+  for (int tt = 0, viimeinen = ehtomuuttujat.size(); tt < viimeinen; ++tt)
+    { // Rekursiolla kaikki alipuut.
+std::cout << "     Liikutaan alipuuhun: " << 2*tt << std::endl;//deb
 ehdokas = (haarat[2*tt]).parasZarvo(ope.vasenHaara(osajoukko, ehtomuuttujat[tt], ehtojenJakokohdat[tt]), ope);
-	tulos = tulos < ehdokas ? tulos : ehdokas;
-	std::cout << "     Liikutaan alipuuhun: " << 2*tt+1 << std::endl;//deb
+tulos = tulos < ehdokas ? tulos : ehdokas;
+std::cout << "     Liikutaan alipuuhun: " << 2*tt+1 << std::endl;//deb
 ehdokas = (haarat[2*tt+1]).parasZarvo(ope.oikeaHaara(osajoukko, ehtomuuttujat[tt], ehtojenJakokohdat[tt]), ope);
-	tulos = tulos < ehdokas ? tulos : ehdokas;
-      } 
+tulos = tulos < ehdokas ? tulos : ehdokas;
+} 
 std::cout << "  Alipuista ja omista paras Z-arvo: " << tulos << std::endl;//deb
-  return tulos;
+return tulos;
 }
 
 int ADT::uusiHaaraZarvolle(double parasZarvo, std::vector<int> osajoukko, ADT_opettaja ope) 

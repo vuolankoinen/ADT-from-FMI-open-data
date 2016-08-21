@@ -8,16 +8,26 @@
 
 struct ADT_opettaja
 {
+  // Konstruktori. Opetusdatan kaksi luokkaa tiedostoissa parametreina.
   ADT_opettaja(std::istream &pos, std::istream &neg);
   std::vector<int> vasenHaara(std::vector<int> osajoukko, int muuttuja, double jakopiste);
   std::vector<int> oikeaHaara(std::vector<int> osajoukko, int muuttuja, double jakopiste);
+  // Laskee tietyn mahdollisen uuden haaran hyvyyden.
   double Zarvo(std::vector<int> osajoukko, int muuttuja, double jakopiste);
+  // Laskee muuttujan arvot, joiden kohdalle voisi uuden splitter noden asettaa.
   std::vector<double> mahdollisetJakopisteet(std::vector<int> osajoukko, int muuttuja);
+  // Ajantasaistaa boostauksessa tarpeelliset opetusdatan painokertoimet.
   void uudetPainot(std::vector<int> osajoukko, int muuttuja, double jakopiste, double vasen_ennuste, double oikea_ennuste);
-  std::vector<double>  ennustearvot(std::vector<int> osajoukko, int muuttuja, double jakopiste); // Palauttaa 2-vektorissa uusien haarojen arvot.
-  double  ekaEnnustearvo(); // Alustusarvo ADT:n juurta varten.
+  // Palauttaa 2-vektorissa uusien haarojen konstruktorien tarvitsemat ennustearvot.
+  std::vector<double> ennustearvot(std::vector<int> osajoukko, int muuttuja, double jakopiste);
+  // Konstruktorin tarvitsema alustusarvo ADT:n juurta varten.
+  double ekaEnnustearvo();
+  // Datan dimensio.
   int dimensio();
-  std::vector<int> kaikkiTapaukset(); // Palauttaa kaikkien opetustapausten osajoukkovektorin
+  // Palauttaa kaikkien opetustapausten osajoukkovektorin.
+  std::vector<int> kaikkiTapaukset();
+  // Turhaksi!!!! muuttunut metodi, tarkistaa, onko harjoitusdatan osajoukko kokonaan samaa luokkaa.
+  bool onko_lehti(std::vector<int> osajoukko);
 private:
   std::vector< std::vector<double> > opetusdata;
   int ekan_positiivisen_indeksi;

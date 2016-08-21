@@ -2,6 +2,7 @@
 #define ADT_H
 
 #include <vector>
+#include <string>
 #include "ADT_opettaja.h"
 
 struct ADT
@@ -12,6 +13,8 @@ struct ADT
   double ennuste(std::vector<double> data);
   // Opeta algoritmi:
   void uusiaHaaroja(int montako, ADT_opettaja ope);
+  // Puun rakenne:
+  std::string rakenne(std::string sisennys);
 private:
   double ennustearvo;
   std::vector<ADT> haarat;
