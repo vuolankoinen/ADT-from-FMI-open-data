@@ -10,6 +10,8 @@ struct ADT_opettaja
 {
   // Konstruktori. Opetusdatan kaksi luokkaa tiedostoissa parametreina.
   ADT_opettaja(std::istream &pos, std::istream &neg);
+  // Validaatiossa parempi vaihtoehtoinen konstruktori. Opetusdata vektorina ja luokkien jakokohta vektorissa.
+  ADT_opettaja(std::vector< std::vector<double> > harjoitusdata, int ekan_pos_ind);
   std::vector<int> vasenHaara(std::vector<int> osajoukko, int muuttuja, double jakopiste);
   std::vector<int> oikeaHaara(std::vector<int> osajoukko, int muuttuja, double jakopiste);
   // Laskee tietyn mahdollisen uuden haaran hyvyyden.

@@ -69,6 +69,31 @@ ADT_opettaja::ADT_opettaja(std::istream &pos, std::istream &neg)
   //std::cout << "r_0: " << r_nolla   << std::endl;//deb
 }
 
+ADT_opettaja::ADT_opettaja(std::vector< std::vector<double> > harjoitusdata, int ekan_pos_ind)
+: ekan_positiivisen_indeksi(ekan_pos_ind), opetusdata(harjoitusdata)
+{
+  double r_nolla = (opetusdata.size() - 2.0 * ekan_positiivisen_indeksi) / (1.0 * opetusdata.size());
+
+  // Laske ekat painot.
+  // std::cout << "Painojen r_0 = " << r_nolla << "  " << opetusdata.size()<< std::endl;//deb
+  for (int tt = 0; tt < ekan_positiivisen_indeksi; ++tt) painot.push_back(1.0/(1.0-r_nolla));
+  for (int tt = ekan_positiivisen_indeksi, loppu = opetusdata.size(); tt < loppu; ++tt) 
+    {
+      painot.push_back( 1.0/(1.0+r_nolla) );
+    }
+  // Normalisointivakio.
+  double Z;
+  for (int tt = 0, loppu = opetusdata.size(); tt < loppu; ++tt)
+    {
+      Z += painot[tt];
+    }
+  // std::cout << "Painojen normalisointivakio = " << Z << std::endl;//deb
+  for (int tt = 0, loppu = opetusdata.size(); tt < loppu; ++tt)
+    {
+      painot[tt] = painot[tt] / Z;
+    }
+}
+
 double ADT_opettaja::s2d(std::string s) 
 {
   double d;
@@ -300,17 +325,12 @@ void ADT_opettaja::uudetPainot(std::vector<int> osajoukko, int muuttuja, double 
 
 
   // Ensin normalisoimaton ajantasaistaminen.
-  double vas = vasen_ennuste < 0 ? -1.0 : 1.0;
-  double oik = oikea_ennuste < 0 ? -1.0 : 1.0;
-  for (int tt = 0; tt < ekan_positiivisen_indeksi; ++tt) // negatiiviset
+  double oikea_luokka = -1.0;
+  for (int tt = 0, loppu = opetusdata.size(); tt < loppu; ++tt) // Kaikki
     {
-      if (vasemmat[tt] > 0) painot[tt] = painot[tt] * exp(alpha * vas);
-      if (oikeat[tt] > 0) painot[tt] = painot[tt] * exp(alpha * oik);
-    }
-  for (int tt = ekan_positiivisen_indeksi, loppu = opetusdata.size(); tt < loppu; ++tt) // positiiviset
-    {
-      if (vasemmat[tt] > 0) painot[tt] = painot[tt] * exp(-1.0 * alpha * vas);
-      if (oikeat[tt] > 0) painot[tt] = painot[tt] * exp(-1.0 * alpha * oik);
+      if (tt >= ekan_positiivisen_indeksi) oikea_luokka = 1.0; // Tutkittavien pisteiden todellinen luokka vaihtuu, loput +-luokkaa.
+      if (vasemmat[tt] > 0) painot[tt] = painot[tt] * exp(-1.0 * alpha * vasen_ennuste * oikea_luokka);
+      if (oikeat[tt] > 0) painot[tt] = painot[tt] * exp(-1.0 * alpha * oikea_ennuste * oikea_luokka);
     }
  
   // Normalisointivakio.

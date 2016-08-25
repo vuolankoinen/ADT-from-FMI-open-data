@@ -141,7 +141,7 @@ void HttpKuuntelija::opeta(Poco::Net::HTTPServerResponse &resp)
   std::ostream& ulos = resp.send(); // ostreamit voisi tulla parametreina
   ulos << "<h1>Puu on kasvatettu, haaroja luotiin " << montako_haaraa  << " kappaletta.</h1>"
        << "<p>" << puu.rakenne("") << "</p>"
-       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/ennuste/\"><b>Ennusta huomisen sadetilanne Helsingin tienoilla</b> Ilmatieteen laitoksen tietojen perusteella.</a></p>"
+       << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/ennuste/\"><b>Ennusta sadetilanne Helsingin tienoilla seuraavien kahden tunnin aikana</b> Ilmatieteen laitoksen tietojen perusteella.</a></p>"
        << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/\">Takaisin.</a></p>";
 }
 
