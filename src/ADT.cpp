@@ -20,7 +20,7 @@ ADT::ADT(double alkuarvo) : ennustearvo(alkuarvo)
 std::cout << "Uuden haaran ennustearvo: " << ennustearvo<<std::endl;//deb
 }
 
-void ADT::uusiaHaaroja(int montako, ADT_opettaja ope) 
+void ADT::uusiaHaaroja(int montako, ADT_opettaja & ope) 
 {
 std::vector<int> kaikki = ope.kaikkiTapaukset();
   for (int tt = 0; tt < montako; tt++)
@@ -97,7 +97,7 @@ std::cout << "  Alipuista ja omista paras Z-arvo: " << tulos << std::endl;//deb
 return tulos;
 }
 
-int ADT::uusiHaaraZarvolle(double parasZarvo, std::vector<int> osajoukko, ADT_opettaja ope) 
+int ADT::uusiHaaraZarvolle(double parasZarvo, std::vector<int> osajoukko, ADT_opettaja & ope) 
 {
   for (int tt = 0, loppu = ope.dimensio(); tt < loppu; ++tt)
     { // Kolutaan kaikki vapaat muuttujat uuden parhaan jakoehdon toivossa.

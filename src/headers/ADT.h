@@ -12,7 +12,7 @@ struct ADT
   ADT(double alkuarvo); // Luo uusi puu antamalla juurelle ADT_opettaja-luokan ekaEnnustearvo-metodin palauttama konstruktorille.
   double ennuste(std::vector<double> data);
   // Opeta algoritmi:
-  void uusiaHaaroja(int montako, ADT_opettaja ope);
+  void uusiaHaaroja(int montako, ADT_opettaja & ope);
   // Puun rakenne:
   std::string rakenne(std::string sisennys);
 private:
@@ -20,7 +20,7 @@ private:
   std::vector<ADT> haarat;
   std::vector<int> ehtomuuttujat;
   std::vector<double> ehtojenJakokohdat;
-  double parasZarvo(std::vector<int> osajoukko, ADT_opettaja ope);
+  double parasZarvo(std::vector<int> osajoukko, ADT_opettaja & ope);
   int uusiHaaraZarvolle(double Zarvo, std::vector<int> osajoukko, ADT_opettaja ope);
 };
 
