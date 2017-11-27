@@ -7,14 +7,21 @@
 
 struct ADT
 {
-  // Konstruktorit
+  // Konstruktori:
   ADT();
-  ADT(double alkuarvo); // Luo uusi puu antamalla juurelle ADT_opettaja-luokan ekaEnnustearvo-metodin palauttama konstruktorille.
+  // Konstruktori, luo uuden puun antamalla juurelle ADT_opettaja-luokan ekaEnnustearvo-metodin palauttama konstruktorille:
+  ADT(double alkuarvo); 
+
+  // Palauttaa ADT:n datalle tuottaman ennusteen - >0  ennustaa sadetta:
   double ennuste(std::vector<double> data);
-  // Opeta algoritmi:
+
+  // Luo puuhun uusia haaroja montako kappaletta:
   void uusiaHaaroja(int montako, ADT_opettaja & ope);
-  // Puun rakenne:
+
+  // Puun rakenne merkkijonona:
   std::string rakenne(std::string sisennys);
+
+
 private:
   double ennustearvo;
   std::vector<ADT> haarat;
