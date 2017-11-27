@@ -11,6 +11,7 @@
 #include <limits>
 #include <sstream> // s2d vaatii
 
+// Konstruktori, positiiviset ja negatiiviset opetustapaukset streameina.
 ADT_opettaja::ADT_opettaja(std::istream &pos, std::istream &neg) 
 {
   // Lue opetusdatat tiedostosta.
@@ -30,7 +31,6 @@ ADT_opettaja::ADT_opettaja(std::istream &pos, std::istream &neg)
       ++laskuri;
     }
   ekan_positiivisen_indeksi = laskuri;
-  std::cout << "\n1. positiivinen indeksi: " << ekan_positiivisen_indeksi << std::endl;//deb
   while (getline(pos, rivi))
     {
       std::vector<double> uusin;
@@ -42,12 +42,9 @@ ADT_opettaja::ADT_opettaja(std::istream &pos, std::istream &neg)
 	}
       opetusdata.push_back(uusin);
     }
-
-
   double r_nolla = (opetusdata.size() - 2.0 * ekan_positiivisen_indeksi) / (1.0 * opetusdata.size());
 
   // Laske ekat painot.
-  // std::cout << "Painojen r_0 = " << r_nolla << "  " << opetusdata.size()<< std::endl;//deb
   for (int tt = 0; tt < ekan_positiivisen_indeksi; ++tt) painot.push_back(1.0/(1.0-r_nolla));
   for (int tt = ekan_positiivisen_indeksi, loppu = opetusdata.size(); tt < loppu; ++tt) 
     {
@@ -59,23 +56,18 @@ ADT_opettaja::ADT_opettaja(std::istream &pos, std::istream &neg)
     {
       Z += painot[tt];
     }
-  // std::cout << "Painojen normalisointivakio = " << Z << std::endl;//deb
   for (int tt = 0, loppu = opetusdata.size(); tt < loppu; ++tt)
     {
       painot[tt] = painot[tt] / Z;
     }
-  // std::cout << " Ekat painot: "  << std::endl;//deb
-  // for (int tt = 0; tt < painot.size();++tt) std::cout << " "<<painot[tt];//deb
-  //std::cout << "r_0: " << r_nolla   << std::endl;//deb
 }
 
+// Konstruktori: opetusdata vektorina, indeksi kertoo kohdan, josta negatiiviset tapaukset loppuvat ja positiiviset alkavat.
 ADT_opettaja::ADT_opettaja(std::vector< std::vector<double> > harjoitusdata, int ekan_pos_ind)
 : ekan_positiivisen_indeksi(ekan_pos_ind), opetusdata(harjoitusdata)
 {
   double r_nolla = (opetusdata.size() - 2.0 * ekan_positiivisen_indeksi) / (1.0 * opetusdata.size());
-
   // Laske ekat painot.
-  // std::cout << "Painojen r_0 = " << r_nolla << "  " << opetusdata.size()<< std::endl;//deb
   for (int tt = 0; tt < ekan_positiivisen_indeksi; ++tt) painot.push_back(1.0/(1.0-r_nolla));
   for (int tt = ekan_positiivisen_indeksi, loppu = opetusdata.size(); tt < loppu; ++tt) 
     {
@@ -87,13 +79,13 @@ ADT_opettaja::ADT_opettaja(std::vector< std::vector<double> > harjoitusdata, int
     {
       Z += painot[tt];
     }
-  // std::cout << "Painojen normalisointivakio = " << Z << std::endl;//deb
   for (int tt = 0, loppu = opetusdata.size(); tt < loppu; ++tt)
     {
       painot[tt] = painot[tt] / Z;
     }
 }
 
+// Apufunktio, muuttaa merkkijonon liukuluvuksi.
 double ADT_opettaja::s2d(std::string s) 
 {
   double d;
@@ -105,6 +97,7 @@ double ADT_opettaja::s2d(std::string s)
   return d;
 }
 
+// Palauttaa vektorin, jossa on opetusdatan alkioiden verran alkiota 1.
 std::vector<int> ADT_opettaja::kaikkiTapaukset()
 {
   std::vector<int> kaikki;
@@ -112,14 +105,17 @@ std::vector<int> ADT_opettaja::kaikkiTapaukset()
   return kaikki;
 }
 
+// Palauttaa ADT:n ekan haarakohdan ennustearvon.
 double  ADT_opettaja::ekaEnnustearvo()
 {
   double r_nolla = (opetusdata.size() - 2.0 * ekan_positiivisen_indeksi) / (1.0*opetusdata.size());
   return 0.5 * log( (1.0+r_nolla)/(1.0-r_nolla)  );
 }
 
+// Palauttaa opetusdatan dimension.
 int ADT_opettaja::dimensio() { return opetusdata[0].size();}
 
+// Palauttaa jakoehdon perusteella vasempaan haaraan kuuluvan osuuden opetusdatasta.
 std::vector<int> ADT_opettaja::vasenHaara(std::vector<int> osajoukko, int muuttuja, double jakopiste) 
 {
   std::vector<int> tulos = osajoukko;
@@ -134,6 +130,7 @@ std::vector<int> ADT_opettaja::vasenHaara(std::vector<int> osajoukko, int muuttu
   return tulos;
 }
 
+// Palauttaa jakoehdon perusteella oikeaan haaraan kuuluvan osuuden opetusdatasta.
 std::vector<int> ADT_opettaja::oikeaHaara(std::vector<int> osajoukko, int muuttuja, double jakopiste)
 {
   std::vector<int> tulos = osajoukko;
@@ -148,16 +145,7 @@ std::vector<int> ADT_opettaja::oikeaHaara(std::vector<int> osajoukko, int muuttu
   return tulos;
 }
 
-//Turha kait jo?
-bool ADT_opettaja::onko_lehti(std::vector<int> osajoukko)
-{
-  int plus = 0, miinus = 0;
-  for (int tt = 0; tt < ekan_positiivisen_indeksi; ++tt) if (osajoukko[tt] != 0) ++miinus;
-  for (int tt = ekan_positiivisen_indeksi; tt < osajoukko.size(); ++tt) if (osajoukko[tt] != 0) ++plus;
-  if (miinus != 0 && plus != 0) return false;
-  return true;
-}
-
+// Palauttaa annetun jakoehdon hyvyyden.
 double ADT_opettaja::Zarvo(std::vector<int> osajoukko, int muuttuja, double jakopiste)
 {   
   double tulos(0.0);
@@ -168,7 +156,6 @@ double ADT_opettaja::Zarvo(std::vector<int> osajoukko, int muuttuja, double jako
 	  tulos += painot[tt];
 	}
     }
-  // std::cout << "Z = " << tulos << " + sqrt(";//deb
   double plussat = 0;
   double miinukset = 0;
   // Toka termi: vasemman haaran homogeenisuus.
@@ -186,7 +173,6 @@ double ADT_opettaja::Zarvo(std::vector<int> osajoukko, int muuttuja, double jako
 	}
     }
   tulos += 2*sqrt(miinukset * plussat);
-  // std::cout  << miinukset<< "*" << plussat << ") + sqrt(";//deb
   // Kolmas termi: oikean haaran homogeenisuus.
   plussat = 0;
   miinukset = 0;
@@ -204,11 +190,10 @@ double ADT_opettaja::Zarvo(std::vector<int> osajoukko, int muuttuja, double jako
 	}
     }
   tulos += 2*sqrt(miinukset * plussat);
-  // std::cout  << miinukset<< "*" << plussat << ") = " << tulos<<std::endl;//deb
   return tulos;
 }
 
-// Uusi versio: kahden samoin luokitellun tapauksen sauma ei ole mahdollinen jakopiste!
+// Palauttaa tietyn muuttujan mahdolliset jakopisteet opetusdatassa.
 std::vector<double> ADT_opettaja::mahdollisetJakopisteet(std::vector<int> osajoukko, int muuttuja)
 {
   std::set<double> yksiperarvo_pos, yksiperarvo_neg;
@@ -261,33 +246,10 @@ std::vector<double> ADT_opettaja::mahdollisetJakopisteet(std::vector<int> osajou
     }
   return tulos;
 }
-/*
-  {
-    std::set<double> yksiperarvo;
-    std::vector<double> tulos;
-    for (int tt = 0, loppu = opetusdata.size(); tt < loppu; ++tt)
-      {
-	if (osajoukko[tt] > 0)
-	  {
-	    yksiperarvo.insert( (opetusdata[tt])[muuttuja] );
-	  }
-      }
-    //  yksiperarvo.erase(std::numeric_limits<double>::quiet_NaN());
-    for (std::set<double>::iterator iter_Y = yksiperarvo.begin(), viimeinen_Y = yksiperarvo.end(); iter_Y != viimeinen_Y; ++iter_Y)
-      tulos.push_back(*iter_Y);
-    if (tulos.size()<2) return tulos; // Surkastuneet tapaukset.
-    std::sort (tulos.begin(), tulos.end());
-    for (int tt=0, viimeinen = tulos.size()-1; tt < viimeinen; ++tt)
-      tulos[tt] = (tulos[tt] + tulos[tt+1]) / 2.0;
-    tulos.pop_back();
-    //for (std::vector<double>::iterator iter_Y = tulos.begin(), viimeinen_Y = tulos.end(); iter_Y != viimeinen_Y; ++iter_Y) std::cout <<*iter_Y<< " ";//deb
-    return tulos;
-}*/
 
-
-void ADT_opettaja::uudetPainot(std::vector<int> osajoukko, int muuttuja, double jakopiste, double vasen_ennuste, double oikea_ennuste)
-{ // Saattaa painot ajan tasalle kun uusi haara on luotu.
-
+// Saattaa painot ajan tasalle kun uusi haara on luotu.
+ADT_opettaja::uudetPainot(std::vector<int> osajoukko, int muuttuja, double jakopiste, double vasen_ennuste, double oikea_ennuste)
+{ 
   double epsilon;
   std::vector<int> vasemmat, oikeat;
   vasemmat = vasenHaara(osajoukko, muuttuja, jakopiste);
@@ -323,7 +285,6 @@ void ADT_opettaja::uudetPainot(std::vector<int> osajoukko, int muuttuja, double 
  
   double alpha = 0.5 * log((1-epsilon)/epsilon); // Korjauskerroin.
 
-
   // Ensin normalisoimaton ajantasaistaminen.
   double oikea_luokka = -1.0;
   for (int tt = 0, loppu = opetusdata.size(); tt < loppu; ++tt) // Kaikki
@@ -345,6 +306,7 @@ void ADT_opettaja::uudetPainot(std::vector<int> osajoukko, int muuttuja, double 
     }
 }
 
+// Palauttaa tietylle jakoehdolla syntyvien uusien haarojen ennustearvot.
 std::vector<double>  ADT_opettaja::ennustearvot(std::vector<int> osajoukko, int muuttuja, double jakopiste)
 {
   std::vector<double> tulos(2);
@@ -370,8 +332,6 @@ std::vector<double>  ADT_opettaja::ennustearvot(std::vector<int> osajoukko, int 
 	  }
 	}
     }
-  std::cout << "v- " << miinukset_v << " v+ "<<plussat_v<<std::endl;//deb
-  std::cout << "o- " << miinukset_o << " o+ "<<plussat_o<<std::endl;//deb
   miinukset_v = miinukset_v == 0 ? 0.0001 : miinukset_v;
   miinukset_o = miinukset_o == 0 ? 0.0001 : miinukset_o;
   plussat_v = plussat_v == 0 ? 0.0001 : plussat_v;

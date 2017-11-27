@@ -43,6 +43,7 @@ HttpKuuntelija::HttpKuuntelija()
   aikatiedosto.close();
 }
 
+// Ohjaa saadun kutsun oikeaan funktioon.
 void HttpKuuntelija::handleRequest(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &resp)
 {
   resp.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
@@ -55,6 +56,7 @@ void HttpKuuntelija::handleRequest(Poco::Net::HTTPServerRequest &req, Poco::Net:
     
 }
 
+// Lataa uudet tiedot Ilmatieteen laitoksen API:sta.
 void HttpKuuntelija::lataa(Poco::Net::HTTPServerResponse &resp)
 {
   time_t aika;
@@ -126,6 +128,7 @@ void HttpKuuntelija::lataa(Poco::Net::HTTPServerResponse &resp)
 
 }
 
+// Luo uuden ADT:n uusimman ladatun datan perusteella.
 void HttpKuuntelija::opeta(Poco::Net::HTTPServerResponse &resp)
 {
   int montako_haaraa = 14;
@@ -145,6 +148,7 @@ void HttpKuuntelija::opeta(Poco::Net::HTTPServerResponse &resp)
        << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/\">Takaisin.</a></p>";
 }
 
+// Luo ennusteen luodun ADT:n perusteella.
 void HttpKuuntelija::ennuste(Poco::Net::HTTPServerResponse &resp)
 {
   resp.setContentType("text/html");
@@ -200,7 +204,7 @@ void HttpKuuntelija::ennuste(Poco::Net::HTTPServerResponse &resp)
   ulos << "<p><a href=\"http://ml-vuolankoinen.rhcloud.com/\">Takaisin.</a></p>";
 }
 
-
+// Tulostaa etusivun.
 void HttpKuuntelija::valikko(Poco::Net::HTTPServerResponse &resp)
 {
   time_t aika;
@@ -254,7 +258,8 @@ void HttpKuuntelija::parsiDataa(std::string lukutiedosto, std::string kirjoitust
   datat.close();
 }
 
-//Luokittelee sen mukaan, onko rivin eka muuttuja nollasta poikkeava vai ei. Olettaa aloituskellonajaksi 20:00 ja askelpituudeksi 2 tuntia.
+// Muodostaa datasta opetusdatan jakamalla havainnot positiivisiin ja negatiivisiin luokkiin - "sadetta" ja "ei sadetta".
+// Luokittelee sen mukaan, onko rivin eka muuttuja nollasta poikkeava vai ei. Olettaa aloituskellonajaksi 20:00 ja askelpituudeksi 2 tuntia.
 void HttpKuuntelija::luokitteleDataa(std::istream& lukutiedosto, std::ostream& kirjoitustiedosto1, std::ostream& kirjoitustiedosto2, int kellonaika = 20) 
 {
   std::string rivi, rivi2, ehdokas;
@@ -357,7 +362,7 @@ void HttpKuuntelija::luokitteleDataa(std::istream& lukutiedosto, std::ostream& k
     }
 }
 
-
+// Apufunktio, lukee merkkijonosta liukuluvun.
 double HttpKuuntelija::s2d(std::string s) {
   double d;
   std::stringstream ss(s);
@@ -368,10 +373,10 @@ double HttpKuuntelija::s2d(std::string s) {
   return d;
 }
 
+// Muotoilee dataa tiedostoon.
 void HttpKuuntelija::tulostaRivi(int kellonaika, std::vector<double> datat1, std::vector<double> datat2, std::vector<double> datat3, std::ostream& tiedosto) 
 {
   tiedosto << std::setw (2) << kellonaika << " ";
-  /*  for (int tt = 0, viimeinen = datat1.size(); tt < viimeinen; tt++) tiedosto << std::setw(7) << datat1[tt] << " ";// Pois, koska samanhetkiset tiedot ovat ennustamiseen melko hoopoja. .*/
   for (int tt = 0, viimeinen = datat2.size(); tt < viimeinen; tt++) tiedosto << std::setw(7) << datat2[tt] << " ";
   for (int tt = 0, viimeinen = datat3.size(); tt < viimeinen; tt++) tiedosto << std::setw(7) << datat3[tt] << " ";
   tiedosto << std::endl;

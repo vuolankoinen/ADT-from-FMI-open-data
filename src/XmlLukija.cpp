@@ -1,3 +1,5 @@
+/* Luokka Poco-kirjaston XML-lukijalle.  */
+
 #include "XmlLukija.h"
 #include <Poco/SAX/ContentHandler.h>
 #include <Poco/SAX/SAXParser.h>
@@ -39,13 +41,14 @@ void XmlLukija::endElement(const Poco::XML::XMLString& uri, const Poco::XML::XML
 {
   if (localName == avain) kirjoitetaan = 0;
 }
-  
+
+// Kirjoitetaan luettu tiedostoon, jos lipun "kirjoitetaan" mukaan ollaan elementissa.   
 void XmlLukija::characters(const Poco::XML::XMLChar ch[], int start, int length)
 {
   if (kirjoitetaan != 0) {
     int myStart = start;
     int myLength = length;
-    while((0 != myLength) && (('\n' == ch[myStart]) || ('\t' == ch[myStart]) || (' ' == ch[myStart]))) // JÃ¤tetÃ¤Ã¤n tyhjÃ¤t alut huomiotta.
+    while((0 != myLength) && (('\n' == ch[myStart]) || ('\t' == ch[myStart]) || (' ' == ch[myStart]))) // Ei huomioida tyhjia alkuja.
       {
 	++myStart;
 	--myLength;

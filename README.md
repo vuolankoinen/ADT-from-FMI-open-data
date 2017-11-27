@@ -1,5 +1,4 @@
 # ml_cpp
 
-Trying out machine learning algorithms and web hosting with C++.
-This project is hosted on OpenShift at  
-ml-vuolankoinen.rhcloud.com
+A hobby project to try out machine learning algorithm (ADT, alternating decision tree) and web hosting with C++.
+This project was hosted on OpenShift while their free C++ hosting continued.
